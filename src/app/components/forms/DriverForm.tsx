@@ -1,6 +1,6 @@
 'use client';
 
-import { useState, useEffect, useCallback } from 'react';
+import { useState, useEffect } from 'react';
 import { TextField, Button, Box } from '@mui/material';
 import styled from '@emotion/styled';
 import RemoveIcon from '@mui/icons-material/Remove';
@@ -270,7 +270,7 @@ export default function DriverForm(props: UrlParams) {
                               label="Marca"
                               variant="standard"
                               name={brand}
-                              value={values.vehicles?.brand}
+                              value={values?.vehicles[index]?.brand}
                               helperText={ touchedBrand && errorBrand ? errorBrand : ""}
                               error={Boolean(touchedBrand && errorBrand)}
                               onChange={handleChange}
@@ -280,7 +280,7 @@ export default function DriverForm(props: UrlParams) {
                               label="Modelo"
                               variant="standard"
                               name={model}
-                              value={values.vehicles?.model}
+                              value={values.vehicles[index]?.model}
                               helperText={ touchedModel && errorModel ? errorModel : ""}
                               error={Boolean(touchedModel && errorModel)}
                               onChange={handleChange}
@@ -290,7 +290,7 @@ export default function DriverForm(props: UrlParams) {
                               label="Ano"
                               variant="standard"
                               name={year}
-                              value={values.vehicles?.year}
+                              value={values.vehicles[index]?.year}
                               helperText={ touchedYear && errorYear ? errorYear : ""}
                               error={Boolean(touchedYear && errorYear)}
                               onChange={handleChange}
@@ -300,7 +300,7 @@ export default function DriverForm(props: UrlParams) {
                               label="Cor"
                               variant="standard"
                               name={color}
-                              value={values.vehicles?.color}
+                              value={values.vehicles[index]?.color}
                               helperText={ touchedColor && errorColor ? errorColor : ""}
                               error={Boolean(touchedColor && errorColor)}
                               onChange={handleChange}
@@ -310,7 +310,7 @@ export default function DriverForm(props: UrlParams) {
                               label="Placa"
                               variant="standard"
                               name={plate}
-                              value={values.vehicles?.plate}
+                              value={values.vehicles[index]?.plate}
                               helperText={ touchedPlate && errorPlate ? errorPlate : ""}
                               error={Boolean(touchedPlate && errorPlate)}
                               onChange={handleChange}
