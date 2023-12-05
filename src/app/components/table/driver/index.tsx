@@ -62,9 +62,23 @@ export default function DriverTable() {
     }
   };
 
+  type driverResponse = {
+    id: string;
+    name: string;
+    rg: string;
+    phone: string;
+    vehicles: {
+      brand?: string;
+      model?: string;
+      year?: string;
+      color?: string;
+      plate?: string;
+    }
+  }
   const handleEditDriver = async (id: string) => {
-    const driverId = await findOneData(Stores.Drivers, id);
-    window.location.href = `/motoristas/${driverId?.id}`
+    const driverId = await findOneData(Stores.Drivers, id) as driverResponse;
+    const driverIdLiteral = driverId?.id;
+    window.location.href = `/motoristas/${driverIdLiteral}`
   }
 
   const handleRequestSort = (

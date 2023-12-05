@@ -18,6 +18,48 @@ import GatewayTableToolbar from '../gatewayForm/tableToolbar';
 import getComparator, { Order } from '../sorting';
 import { initDB, getStoreData, deleteData, Gateway, Stores } from '@/utils/db';
 
+function createData(
+    id: string,
+    name: string,
+    car: string,
+    plate: string,
+    date: number,
+    hour: number,
+    type: string,
+  ): GatehouseData {
+    return {
+      id,
+      name,
+      car,
+      plate,
+      date,
+      hour,
+      type,
+    };
+  }
+  
+  const rows = [
+    createData(
+      'id-1',
+      'Rodrigo',
+      'Volkswagen',
+      'AAA-1111',
+      20231104,
+      12030,
+      'Entrada',
+    ),
+    createData('id-2', 'Ângela', 'Fiat', 'BBB-2222', 20231104, 12030, 'Saida'),
+    createData(
+      'id-3',
+      'Pedro',
+      'Volkswagen',
+      'CCC-3333',
+      20231104,
+      12030,
+      'Entrada',
+    ),
+    createData('id-4', 'Lucas', 'Fiat', 'DDD-4444', 20231104, 12030, 'Saida'),
+  ];
 export default function GatewayTable() {
   const [order, setOrder] = useState<Order>('asc');
   const [orderBy, setOrderBy] = useState<keyof GatehouseData>('name');
@@ -43,8 +85,6 @@ export default function GatewayTable() {
   useEffect(() => {
     handleGetGateways();
   }, [])
-
-  const rows = gateways;
 
   const handleDeleteGateway = async (id: string) => {
     if (!isDBReady) {
