@@ -125,7 +125,7 @@ export default function DriverForm(props: UrlParams) {
     }
     if (id) {
       const drivers = await handleFindOne()
-      setFormDriverValue(drivers);
+      setFormDriverValue(drivers as unknown as DriverFormValues);
     }
   }
     
