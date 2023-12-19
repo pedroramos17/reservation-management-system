@@ -25,4 +25,4 @@
 //   return axios.delete(`${GATEWAY_ROUTE}${id}`, { headers: authHeader() });
 // };
 
-export { getGateways, findGateway, postGateway, putGateway, deleteGateway };
+// export { getGateways, findGateway, postGateway, putGateway, deleteGateway };
