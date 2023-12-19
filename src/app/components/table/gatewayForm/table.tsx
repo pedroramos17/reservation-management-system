@@ -40,7 +40,7 @@ interface TabProps {
   tabValue: number;
 }
 
-export default function GatewayTable({ tabValue }: TabProps) {
+export default function GatewayTable({ tabValue }: Readonly<TabProps>) {
   const [order, setOrder] = useState<Order>('asc');
   const [orderBy, setOrderBy] = useState<keyof GatewayData>('name');
   const [selected, setSelected] = useState<readonly string[]>([]);

@@ -23,8 +23,8 @@ function createData(
     name: string,
     car: string,
     plate: string,
-    date: number,
-    hour: number,
+    date: string,
+    hour: string,
     type: string,
   ): GatehouseData {
     return {
@@ -41,25 +41,24 @@ function createData(
   const rows = [
     createData(
       'id-1',
-      'Rodrigo',
-      'Volkswagen',
-      'AAA-1111',
-      20231104,
-      12030,
+      'Alexandrez',
+      'ford',
+      'por7787',
+      "04/11/2023",
+      "12:30",
       'Entrada',
     ),
-    createData('id-2', 'Ângela', 'Fiat', 'BBB-2222', 20231104, 12030, 'Saida'),
     createData(
-      'id-3',
-      'Pedro',
+      'id-2',
+      'lucas',
       'Volkswagen',
-      'CCC-3333',
-      20231104,
-      12030,
+      'jds9329',
+      "04/11/2023",
+      "13:30",
       'Entrada',
-    ),
-    createData('id-4', 'Lucas', 'Fiat', 'DDD-4444', 20231104, 12030, 'Saida'),
+    )
   ];
+
 export default function GatewayTable() {
   const [order, setOrder] = useState<Order>('asc');
   const [orderBy, setOrderBy] = useState<keyof GatehouseData>('name');
@@ -86,20 +85,6 @@ export default function GatewayTable() {
     handleGetGateways();
   }, [])
 
-  const handleDeleteGateway = async (id: string) => {
-    if (!isDBReady) {
-      await handleInitDB();
-    }
-    try {
-      await deleteData(Stores.Gateways, id);
-      // refetch gateways after deleting data
-      handleGetGateways();
-    } catch (err: unknown) {
-      if (err instanceof Error) {
-        console.error(err.message);
-      }
-    }
-  };
 
   const handleRequestSort = (
     event: React.MouseEvent<unknown>,
