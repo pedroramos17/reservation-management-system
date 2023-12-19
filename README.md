@@ -4,6 +4,15 @@ This is a demo of Barkin (parking management) working offline-first
 
 [click here to check it out](https://demo-barkin-pedroramos17.vercel.app/)
 
+## Features
+
+
+- [X] ~~CRUD drivers~~
+- [X] ~~Array of vehicles~~
+- [ ] Full-text search in IndexedDB
+- [ ] Gate entry/exit
+- [ ] Export report in PDF/Spreadsheet
+
 ## Getting Started
 
 First, install the dependencies:
