@@ -16,7 +16,7 @@ import { GatehouseData } from '../../../../interfaces/gateway.interface';
 import GatewayTableHead from './tableHead';
 import GatewayTableToolbar from '../gatewayForm/tableToolbar';
 import getComparator, { Order } from '../sorting';
-import { initDB, getStoreData, deleteData, Gateway, Stores } from '@/utils/db';
+import { initDB, getStoreData, Gateway, Stores } from '@/utils/db';
 
 function createData(
     id: string,

@@ -8,16 +8,16 @@ import {
   Box,
 } from '@mui/material';
 import { visuallyHidden } from '@mui/utils';
-import { GatehouseData } from '../../../interfaces/gateway.interface';
+import { GatehouseData } from '@/interfaces/gateway.interface';
 import { Order } from '../sorting';
 
 type Align = 'left' | 'center' | 'right' | 'justify' | 'inherit';
 
 interface HeadCell {
-  disablePadding: boolean;
   id: keyof GatehouseData;
-  label: string;
+  disablePadding: boolean;
   align: Align;
+  label: string;
 }
 
 const headCells: readonly HeadCell[] = [
