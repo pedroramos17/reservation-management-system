@@ -1,13 +1,17 @@
-export default async function findDriver(id: string) {}
-
-export default async function postDriver(driver: any) {
+async function findDriver(id: string) {
 	return;
 }
 
-export default async function putDriver(id: string, driver: any) {
+async function postDriver(driver: any) {
 	return;
 }
 
-export default async function deleteDriver(id: string) {
+async function putDriver(id: string, driver: any) {
 	return;
 }
+
+async function deleteDriver(id: string) {
+	return;
+}
+
+export { findDriver, postDriver, putDriver, deleteDriver };
