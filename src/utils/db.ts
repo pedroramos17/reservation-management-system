@@ -1,3 +1,5 @@
+type DataType<T> = T | string | null;
+
 let request: IDBOpenDBRequest;
 let db: IDBDatabase;
 let version = 2;
@@ -40,7 +42,7 @@ const initDB = (): Promise<boolean> => {
 			(e.target as any).result.close();
 		};
 		request.onupgradeneeded = (e) => {
-			db = e?.target?.result;
+			db = (e.target as any).result;
 
 			// if the data object store doesn't exist, create it
 			if (!db.objectStoreNames.contains(Stores.Drivers)) {
@@ -55,7 +57,7 @@ const initDB = (): Promise<boolean> => {
 		};
 
 		request.onsuccess = (e) => {
-			db = e?.target?.result;
+			db = (e.target as any).result;
 			version = db.version;
 			console.log("request.onsuccess - initDB " + version);
 			resolve(true);
@@ -67,13 +69,14 @@ const initDB = (): Promise<boolean> => {
 		};
 	});
 };
-const addData = <T>(storeName: string, data: T): Promise<T | string | null> => {
+
+const addData = <T>(storeName: string, data: T): Promise<DataType<T>> => {
 	return new Promise((resolve) => {
 		request = window.indexedDB.open(DB_NAME, version);
 
 		request.onsuccess = (e) => {
 			console.log("request.onsuccess - addData", data);
-			db = e?.target?.result;
+			db = (e.target as any).result;
 			const tx = db.transaction(storeName, "readwrite");
 			const store = tx.objectStore(storeName);
 			store.add(data);
@@ -98,7 +101,7 @@ const deleteData = (storeName: string, key: string): Promise<boolean> => {
 
 		request.onsuccess = (e) => {
 			console.log("request.onsuccess - deleteData", key);
-			db = e?.target?.result;
+			db = (e.target as any).result;
 			const tx = db.transaction(storeName, "readwrite");
 			const store = tx.objectStore(storeName);
 			const res = store.delete(key);
@@ -117,13 +120,13 @@ const updateData = <T>(
 	storeName: string,
 	key: string,
 	data: T
-): Promise<T | string | null> => {
+): Promise<DataType<T>> => {
 	return new Promise((resolve) => {
 		request = window.indexedDB.open(DB_NAME, version);
 
 		request.onsuccess = (e) => {
 			console.log("request.onsuccess - updateData", key);
-			db = e?.target?.result;
+			db = (e.target as any).result;
 			const tx = db.transaction(storeName, "readwrite");
 			const store = tx.objectStore(storeName);
 			const res = store.get(key);
@@ -143,18 +146,18 @@ const updateData = <T>(
 const findOneData = <T>(
 	storeName: string,
 	key: string
-): Promise<T | string | null> => {
+): Promise<DataType<T>> => {
 	return new Promise((resolve) => {
 		request = window.indexedDB.open(DB_NAME, version);
 
 		request.onsuccess = (e) => {
 			console.log("request.onsuccess - findOneData", key);
-			db = e?.target?.result;
+			db = (e.target as any).result;
 			const tx = db.transaction(storeName, "readonly");
 			const store = tx.objectStore(storeName);
 			const res = store.get(key);
 			res.onsuccess = () => {
-				resolve(res.result);
+				resolve((res as any).result);
 			};
 			res.onerror = () => {
 				resolve(null);
@@ -169,7 +172,7 @@ const getStoreData = <T>(storeName: Stores): Promise<T[]> => {
 
 		request.onsuccess = (e) => {
 			console.log("request.onsuccess - getAllData");
-			db = e?.target?.result;
+			db = (e.target as any).result;
 			const tx = db.transaction(storeName, "readonly");
 			const store = tx.objectStore(storeName);
 			const res = store.getAll();
