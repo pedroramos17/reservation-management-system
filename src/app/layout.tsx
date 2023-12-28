@@ -1,3 +1,4 @@
+import { Analytics } from "@vercel/analytics/react";
 import type { Metadata } from 'next'
 import { Roboto } from 'next/font/google'
 import './globals.css'
@@ -20,6 +21,7 @@ export default function RootLayout({
       <body className={roboto.className}>
         <DrawerLayout>
           {children}
+          <Analytics />
         </DrawerLayout>
         </body>
     </html>
