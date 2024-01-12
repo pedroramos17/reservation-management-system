@@ -116,6 +116,39 @@ const deleteData = (storeName: string, key: string): Promise<boolean> => {
 	});
 };
 
+const deleteManyData = (
+	storeName: string,
+	keys: string[]
+): Promise<boolean> => {
+	return new Promise((resolve) => {
+		request = window.indexedDB.open(DB_NAME, version);
+
+		request.onsuccess = (e) => {
+			console.log("request.onsuccess - deleteManyData", keys);
+			db = (e.target as any).result;
+			const tx = db.transaction(storeName, "readwrite");
+			const store = tx.objectStore(storeName);
+
+			store.openCursor().onsuccess = (e) => {
+				const cursor = (e.target as any).result;
+				if (cursor) {
+					if (keys.includes(cursor.primaryKey)) {
+						cursor.delete();
+					}
+					cursor.continue();
+				}
+				cursor.onsuccess = () => {
+					resolve(true);
+				};
+				cursor.onerror = (e: any) => {
+					e.target.result.close();
+					resolve(false);
+				};
+			};
+		};
+	});
+};
+
 const updateData = <T>(
 	storeName: string,
 	key: string,
@@ -188,4 +221,12 @@ const getStoreData = <T>(storeName: Stores): Promise<T[]> => {
 	});
 };
 
-export { initDB, addData, deleteData, updateData, getStoreData, findOneData };
+export {
+	initDB,
+	addData,
+	deleteData,
+	updateData,
+	getStoreData,
+	findOneData,
+	deleteManyData,
+};

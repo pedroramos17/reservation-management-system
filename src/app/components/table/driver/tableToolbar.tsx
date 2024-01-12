@@ -4,12 +4,13 @@ import DeleteIcon from '@mui/icons-material/Delete';
 
 interface DriverTableToolBarProps {
   numSelected: number;
+  onDeleteSelectedDrivers: (selected: string[]) => void;
 }
 
 export default function DriverTableToolbar(
   props: Readonly<DriverTableToolBarProps>,
 ) {
-  const { numSelected } = props;
+  const { numSelected, onDeleteSelectedDrivers } = props;
 
   return (
     <Toolbar
@@ -45,7 +46,7 @@ export default function DriverTableToolbar(
         </Typography>
       )}
       {numSelected > 0 ? (
-        <Tooltip title="Excluir">
+      <Tooltip title="Excluir" onClick={async () => onDeleteSelectedDrivers(numSelected.toString())}>
           <IconButton>
             <DeleteIcon />
           </IconButton>

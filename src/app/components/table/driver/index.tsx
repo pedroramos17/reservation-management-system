@@ -1,6 +1,6 @@
 'use client';
 
-import React, { useMemo, useState, useEffect } from 'react';
+import React, { useMemo, useState, useEffect, useCallback } from 'react';
 import {
   Table,
   TableBody,
@@ -17,35 +17,49 @@ import getComparator, { Order } from '../sorting';
 import DriverTableToolbar from './tableToolbar';
 import DriverTableHead from './tableHead';
 import { DriverData } from '@/interfaces/driver.interface';
-import { initDB, getStoreData, deleteData, Driver, Stores, findOneData } from '@/utils/db';
+import { initDB, getStoreData, deleteData, Driver, Stores, findOneData, deleteManyData } from '@/utils/db';
+
+type driverResponse = {
+  id: string;
+  name: string;
+  rg: string;
+  phone: string;
+  vehicles: {
+    brand?: string;
+    model?: string;
+    year?: string;
+    color?: string;
+    plate?: string;
+  }
+}
 
 export default function DriverTable() {
   const [order, setOrder] = useState<Order>('asc');
   const [orderBy, setOrderBy] = useState<keyof DriverData>('name');
-  const [selected, setSelected] = useState<readonly string[]>([]);
+  const [selected, setSelected] = useState<string[]>([]);
   const [page, setPage] = useState(0);
   const [rowsPerPage, setRowsPerPage] = useState(5);
   const [isDBReady, setIsDBReady] = useState<boolean>(false);
   const [drivers, setDrivers] = useState<Driver[]|[]>([]);
 
-  const handleInitDB = async () => {
+  const rows = drivers;
+
+  const handleInitDB = useCallback(async () => {
     const status = await initDB();
     setIsDBReady(!!status);
-  };
+  }, [setIsDBReady]);
   
-  const handleGetDrivers = async () => {
+  const handleGetDrivers = useCallback(async () => {
     if (!isDBReady) {
       await handleInitDB();
     }
     const drivers = await getStoreData<Driver>(Stores.Drivers);
     setDrivers(drivers);
-  };
+  }, [isDBReady, handleInitDB]);
 
   useEffect(() => {
     handleGetDrivers();
-  }, [])
-
-  const rows = drivers;
+  }, [handleGetDrivers])
 
   const handleDeleteDriver = async (id: string) => {
     if (!isDBReady) {
@@ -62,19 +76,6 @@ export default function DriverTable() {
     }
   };
 
-  type driverResponse = {
-    id: string;
-    name: string;
-    rg: string;
-    phone: string;
-    vehicles: {
-      brand?: string;
-      model?: string;
-      year?: string;
-      color?: string;
-      plate?: string;
-    }
-  }
   const handleEditDriver = async (id: string) => {
     const driverId = await findOneData(Stores.Drivers, id) as driverResponse;
     const driverIdLiteral = driverId?.id;
@@ -93,6 +94,7 @@ export default function DriverTable() {
   const handleSelectAllClick = (event: React.ChangeEvent<HTMLInputElement>) => {
     if (event.target.checked) {
       const newSelected = rows.map((n) => n.id);
+      console.log(newSelected);
       setSelected(newSelected);
       return;
     }
@@ -101,7 +103,7 @@ export default function DriverTable() {
 
   const handleClick = (_: React.MouseEvent<unknown>, id: string) => {
     const selectedIndex = selected.indexOf(id);
-    let newSelected: readonly string[] = [];
+    let newSelected: string[] = [];
 
     if (selectedIndex === -1) {
       newSelected = newSelected.concat(selected, id);
@@ -117,6 +119,23 @@ export default function DriverTable() {
     }
     setSelected(newSelected);
   };
+
+  const handleDeleteSelectedDrivers = async (selected: string[]) => {
+    if (!isDBReady) {
+      await handleInitDB();
+    }
+    try {
+      console.log(selected);
+      await deleteManyData(Stores.Drivers, selected);
+      // refetch drivers after deleting data
+      handleGetDrivers();
+    } catch (err: unknown) {
+      if (err instanceof Error) {
+        console.error(err.message);
+      }
+    }
+  }
+
 
   const handleChangePage = (_: unknown, newPage: number) => {
     setPage(newPage);
@@ -137,15 +156,15 @@ export default function DriverTable() {
   const visibleRows = useMemo(
     () =>
       rows
-        .slice(page * rowsPerPage, page * rowsPerPage + rowsPerPage)
-        .sort(getComparator(order, orderBy)),
+      .slice(page * rowsPerPage, page * rowsPerPage + rowsPerPage)
+      .sort(getComparator(order, orderBy)),
     [order, orderBy, page, rows, rowsPerPage],
   );
 
   return (
     <Box sx={{ width: '100%' }}>
       <Paper sx={{ width: '100%', mb: 2 }}>
-        <DriverTableToolbar numSelected={selected.length} />
+        <DriverTableToolbar numSelected={selected.length} onDeleteSelectedDrivers={() => 	handleDeleteSelectedDrivers(selected)} />
         <TableContainer>
           <Table sx={{ minWidth: 750 }} aria-labelledby="tableTitle">
             <caption>Tabela de cadastro de entradas e saídas</caption>

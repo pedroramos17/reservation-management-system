@@ -1,9 +1,10 @@
 'use client';
 
 import { useState, useEffect } from 'react';
-import { TextField, Button, Box } from '@mui/material';
+import { TextField, Button, Box, IconButton } from '@mui/material';
 import styled from '@emotion/styled';
 import RemoveIcon from '@mui/icons-material/Remove';
+import ArrowBack from '@mui/icons-material/ArrowBack';
 import { Formik, Form, FieldArray, FormikHelpers, getIn } from 'formik'
 import * as Yup from 'yup'
 import { initDB, addData, getStoreData, Stores, Driver, findOneData, updateData } from '@/utils/db';
@@ -21,7 +22,7 @@ const Container = styled.div`
 
 const ButtonContainer = styled.div`
   display: flex;
-  justify-content: space-between;
+  justify-content: flex-end;
 `;
 
 interface UrlParams {
@@ -178,6 +179,9 @@ export default function DriverForm(props: UrlParams) {
 
   return (
       <Box sx={{ mx: 4 }}>
+        <IconButton variant="outlined" LinkComponent="a" href="/motoristas">
+          <ArrowBack sx={{ fontSize: 36, color: '#000' }} />
+        </IconButton>
         <h1>{id ? "Editar" : "Cadastrar"} Motorista</h1>
         {error && <p style={{ color: 'red' }}>{error}</p>}
         <Formik
@@ -331,9 +335,6 @@ export default function DriverForm(props: UrlParams) {
                   <span>Todos os campos precisam ser preenchidos corretamente</span>
                 )}
                 <ButtonContainer>
-                  <Button variant="outlined" LinkComponent="a" href="/motoristas">
-                    Voltar
-                  </Button>
                   <Button type="submit" variant="contained" >Salvar</Button>
                 </ButtonContainer>
               </Container>
