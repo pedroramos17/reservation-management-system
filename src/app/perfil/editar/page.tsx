@@ -1,9 +1,9 @@
 'use client';
+
 import { TextField, Button } from '@mui/material';
 import styled from '@emotion/styled';
 
 const Container = styled.div`
-  height: 100vh;
   display: flex;
   flex-direction: column;
   justify-content: center;
@@ -20,9 +20,23 @@ const Wrapper = styled.div`
 `;
 
 export default function Profile() {
+  let percent = 0 as unknown as string;
+  let quota = 0 as unknown as string;
+  navigator.storage.estimate().then((estimate) => {
+    percent = (
+      (estimate.usage as unknown as number) * (100 / (estimate.quota as unknown as number)) *
+      100
+    ).toFixed(2);
+    quota = ((estimate.quota as unknown as number) / 1024 / 1024).toFixed(2) + "MB";
+});
   return (
     <Container>
       <h1>Preferências do Perfil</h1>
+      <p>
+        <h2>Informações do sistema</h2>
+        <h3>Armazenamento</h3>
+      <label>Você está usando {percent}% do seu armazenamento no total disponível de {quota}.</label>
+      </p>
       <form
         style={{
           display: 'flex',
