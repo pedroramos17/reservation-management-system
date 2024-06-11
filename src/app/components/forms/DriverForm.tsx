@@ -14,10 +14,14 @@ const Container = styled.div`
   flex-direction: column;
   justify-content: space-between;
   align-items: stretch;
-  width: 100%;
+  width: 70%;
   height: 100%;
   padding: 24px auto;
   gap: 12px;
+
+  @media (max-width: 768px) {
+    width: 100%;
+  }
 `;
 
 const ButtonContainer = styled.div`
@@ -25,9 +29,33 @@ const ButtonContainer = styled.div`
   justify-content: flex-end;
 `;
 
+const FlexContainer = styled.div`
+display: flex;
+flex-direction: column;
+@media (min-width: 640px) {
+  flex-direction: row;
+  gap: 48px;
+  width: 100%;
+}
+`;
+
+const GridContainer = styled.div`
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 24px;
+
+  @media (max-width: 768px) {
+    grid-template-columns: repeat(2, 1fr);
+  }
+
+  @media (max-width: 600px) {
+    grid-template-columns: repeat(1, 1fr);
+  }
+`;
+
 interface UrlParams {
   id: string;
-}
+};
 
 interface DriverFormValues {
   name: string;
@@ -43,7 +71,7 @@ interface DriverFormValues {
 }
 
 
-export default function DriverForm(props: UrlParams) {
+export default function DriverForm(props: Readonly<UrlParams>) {
   const { id } = props;
   const [isDBReady, setIsDBReady] = useState<boolean>(false);
   const [error, setError] = useState<string | null>(null);
@@ -67,18 +95,14 @@ export default function DriverForm(props: UrlParams) {
     setIsDBReady(status);
   };
 
-  const handleGetDrivers = async () => {
-    await getStoreData<Driver>(Stores.Drivers);
-  };
-
   const handleAddDriver = async (values: DriverFormValues) => {
     const { name, rg, phone, vehicles } = values;
     let id = self.crypto.randomUUID();
 
+    id = new Date().toISOString() + "|" + id;
+
     try {
       await addData(Stores.Drivers, { name, rg, phone, vehicles, id });
-      // refetch drivers after creating data
-      handleGetDrivers();
     } catch (err: unknown) {
       if (err instanceof Error) {
         console.error(err.message);
@@ -93,8 +117,6 @@ export default function DriverForm(props: UrlParams) {
     const { name, rg, phone, vehicles } = values;
     try {
       await updateData(Stores.Drivers, id, { name, rg, phone, vehicles });
-      // refetch drivers after creating data
-      handleGetDrivers();
     } catch (err: unknown) {
       if (err instanceof Error) {
         console.error(err.message);
@@ -132,7 +154,7 @@ export default function DriverForm(props: UrlParams) {
     
     useEffect(() => {
       handleFillForm();
-    }, [])
+    })
   const initialValues = {
       name: '',
       rg: '',
@@ -179,7 +201,7 @@ export default function DriverForm(props: UrlParams) {
 
   return (
       <Box sx={{ mx: 4 }}>
-        <IconButton variant="outlined" LinkComponent="a" href="/motoristas">
+        <IconButton LinkComponent="a" href="/motoristas">
           <ArrowBack sx={{ fontSize: 36, color: '#000' }} />
         </IconButton>
         <h1>{id ? "Editar" : "Cadastrar"} Motorista</h1>
@@ -214,32 +236,35 @@ export default function DriverForm(props: UrlParams) {
                   required
                   autoFocus
                 />
-                <TextField
-                  label="RG"
-                  variant="standard"
-                  name="rg"
-                  value={values.rg}
-                  helperText={ touchedRg && errorRg ? errorRg : ""}
-                  error={Boolean(touchedRg && errorRg)}
-                  onChange={handleChange}
-                  onBlur={handleBlur}
-                />
-                <TextField
-                  label="Telefone"
-                  variant="standard"
-                  name="phone"
-                  value={values.phone}
-                  helperText={ touchedPhone && errorPhone ? errorPhone : ""}
-                  error={Boolean(touchedPhone && errorPhone)}
-                  onChange={handleChange}
-                  onBlur={handleBlur}
-                />
+                <FlexContainer>
+                  <TextField
+                    label="RG"
+                    variant="standard"
+                    name="rg"
+                    value={values.rg}
+                    helperText={ touchedRg && errorRg ? errorRg : ""}
+                    error={Boolean(touchedRg && errorRg)}
+                    onChange={handleChange}
+                    onBlur={handleBlur}
+                  />
+                  <TextField
+                    label="Telefone"
+                    variant="standard"
+                    name="phone"
+                    value={values.phone}
+                    helperText={ touchedPhone && errorPhone ? errorPhone : ""}
+                    error={Boolean(touchedPhone && errorPhone)}
+                    onChange={handleChange}
+                    onBlur={handleBlur}
+                  />
+                </FlexContainer>
                 <h2>Adicionar Veículo</h2>
                 <FieldArray name='vehicles'>
                   {({ remove, push }) => (
                     <div>
                       {values.vehicles?.length > 0 &&
                         values.vehicles.map((_, index) => {
+                          const vehicleId = `vehicles[${index}].vehicleId`;
                           const brand = `vehicles[${index}].brand`;
                           const model = `vehicles[${index}].model`;
                           const year = `vehicles[${index}].year`;
@@ -262,7 +287,7 @@ export default function DriverForm(props: UrlParams) {
                           const errorPlate = getIn(errors, plate);
 
                           return (
-                          <div key={index} style={{ display: 'flex', flexDirection: 'column', gap: 12 }}>
+                          <div key={vehicleId} style={{ display: 'flex', flexDirection: 'column', gap: 12 }}>
                             <Box sx={{ mt: 4 }}>
                               <Button
                                 variant="outlined"
@@ -270,6 +295,7 @@ export default function DriverForm(props: UrlParams) {
                                 onClick={() => remove(index)}
                               ><RemoveIcon /></Button>
                             </Box>
+                            <GridContainer>
                             <TextField
                               label="Marca"
                               variant="standard"
@@ -321,6 +347,7 @@ export default function DriverForm(props: UrlParams) {
                               onBlur={handleBlur}
                               required
                             />
+                            </GridContainer>
                           </div>
                         )})}
                           <Box sx={{ my: 4 }}>
