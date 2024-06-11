@@ -1,6 +1,6 @@
 'use client';
 
-import React, { useMemo, useState, useEffect, useCallback } from 'react';
+import React, { useMemo, useState, useEffect, useCallback, Suspense } from 'react';
 import {
   Table,
   TableBody,
@@ -13,6 +13,7 @@ import {
   Box,
   Button,
 } from '@mui/material';
+import FlexSearch from 'flexsearch';
 import getComparator, { Order } from '../sorting';
 import DriverTableToolbar from './tableToolbar';
 import DriverTableHead from './tableHead';
@@ -33,7 +34,11 @@ type driverResponse = {
   }
 }
 
-export default function DriverTable() {
+export default function DriverTable({
+  query,
+}: Readonly<{
+  query: string;
+}>) {
   const [order, setOrder] = useState<Order>('asc');
   const [orderBy, setOrderBy] = useState<keyof DriverData>('name');
   const [selected, setSelected] = useState<string[]>([]);
@@ -41,8 +46,40 @@ export default function DriverTable() {
   const [rowsPerPage, setRowsPerPage] = useState(5);
   const [isDBReady, setIsDBReady] = useState<boolean>(false);
   const [drivers, setDrivers] = useState<Driver[]|[]>([]);
+  
+  
+  function fetchFilteredDrivers(query: string, drivers: Driver[]|[]) {
+    const DriverDocument = new FlexSearch.Document({
+      document: {
+        id: 'id',
+        index: 'name',
+      },
+      charset: 'latin:advanced',
+      tokenize: 'reverse',
+      cache: true,
+      preset: 'performance',
+    })
 
-  const rows = drivers;
+    for (const driver of drivers) {
+      DriverDocument.add({
+        id: driver.id,
+        name: driver.name,
+      })
+    }
+      
+    const results = DriverDocument.search(query, { suggest: true });
+
+    return results;
+  }
+  
+  const driversResponse = fetchFilteredDrivers(query, drivers);
+
+  let driversIds: any = [];
+  driversResponse.forEach((response) => {
+    driversIds = response['result'];
+  })
+
+  const rows = query ? drivers.filter((driver) => driversIds.includes(driver.id)) : drivers;
 
   const handleInitDB = useCallback(async () => {
     const status = await initDB();
@@ -156,8 +193,8 @@ export default function DriverTable() {
   const visibleRows = useMemo(
     () =>
       rows
-      .slice(page * rowsPerPage, page * rowsPerPage + rowsPerPage)
-      .sort(getComparator(order, orderBy)),
+    .toSorted(getComparator(order, orderBy))
+    .slice(page * rowsPerPage, page * rowsPerPage + rowsPerPage),
     [order, orderBy, page, rows, rowsPerPage],
   );
 
@@ -176,6 +213,7 @@ export default function DriverTable() {
               onRequestSort={handleRequestSort}
               rowCount={rows.length}
             />
+            <Suspense fallback={<div>Loading...</div>}>
             <TableBody>
               {visibleRows.map((row, index) => {
                 const isItemSelected = isSelected(row.id);
@@ -234,6 +272,7 @@ export default function DriverTable() {
                 </TableRow>
               )}
             </TableBody>
+            </Suspense>
           </Table>
         </TableContainer>
         <TablePagination
@@ -245,6 +284,7 @@ export default function DriverTable() {
           onPageChange={handleChangePage}
           onRowsPerPageChange={handleChangeRowsPerPage}
           labelRowsPerPage="Itens por página"
+          labelDisplayedRows={({ from, to, count }) => `${from}–${to} de ${count}`}
         />
       </Paper>
     </Box>
