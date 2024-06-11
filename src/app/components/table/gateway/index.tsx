@@ -14,60 +14,24 @@ import {
 import React, { useState, useMemo, useEffect } from 'react';
 import { GatehouseData } from '../../../../interfaces/gateway.interface';
 import GatewayTableHead from './tableHead';
-import GatewayTableToolbar from '../gatewayForm/tableToolbar';
+import GatewayTableToolbar from './tableToolbar';
 import getComparator, { Order } from '../sorting';
-import { initDB, getStoreData, Gateway, Stores } from '@/utils/db';
+import { initDB, getStoreData, Gateway, Stores, Driver, findOneData, Vehicle } from '@/utils/db';
 
-function createData(
-    id: string,
-    name: string,
-    car: string,
-    plate: string,
-    date: string,
-    hour: string,
-    type: string,
-  ): GatehouseData {
-    return {
-      id,
-      name,
-      car,
-      plate,
-      date,
-      hour,
-      type,
-    };
-  }
-  
-  const rows = [
-    createData(
-      'id-1',
-      'Alexandrez',
-      'ford',
-      'por7787',
-      "04/11/2023",
-      "12:30",
-      'Entrada',
-    ),
-    createData(
-      'id-2',
-      'lucas',
-      'Volkswagen',
-      'jds9329',
-      "04/11/2023",
-      "13:30",
-      'Entrada',
-    )
-  ];
+interface GatewayData extends GatehouseData {
+  name: string;
+}; 
 
 export default function GatewayTable() {
   const [order, setOrder] = useState<Order>('asc');
-  const [orderBy, setOrderBy] = useState<keyof GatehouseData>('name');
+  const [orderBy, setOrderBy] = useState<keyof GatewayData>('name');
   const [selected, setSelected] = useState<readonly string[]>([]);
   const [page, setPage] = useState(0);
   const [rowsPerPage, setRowsPerPage] = useState(5);
   const [isDBReady, setIsDBReady] = useState<boolean>(false);
-  const [gateways, setGateways] = useState<Gateway[]|[]>([]);
+  const [gatewaysData, setGatewaysData] = useState<GatewayData[]|[]>([]);
 
+  const rows = gatewaysData;
   const handleInitDB = async () => {
     const status = await initDB();
     setIsDBReady(!!status);
@@ -78,12 +42,26 @@ export default function GatewayTable() {
       await handleInitDB();
     }
     const gateways = await getStoreData<Gateway>(Stores.Gateways);
-    setGateways(gateways);
+    const drivers = await getStoreData<Driver>(Stores.Drivers);
+    const gatewaysData = gateways.map((gateway) => {
+      const driver = drivers.find((driver) => driver.id === gateway.driverId) as Driver;
+      const vehicle = driver.vehicles.find((vehicle) => vehicle.id === gateway.vehicleId) as Vehicle;
+      return {
+        id: gateway.id,
+        name: driver.name,
+        car: `${vehicle.model} ${vehicle.brand} ${vehicle.color} ${vehicle.year}`,
+        plate: vehicle.plate,
+        date: gateway.timestamp,
+        hour: gateway.timestamp,
+        type: gateway.parked ? 'Entrada' : 'Saida',
+      }
+    })
+    setGatewaysData(gatewaysData);
   };
 
   useEffect(() => {
     handleGetGateways();
-  }, [])
+  });
 
 
   const handleRequestSort = (

@@ -1,9 +1,8 @@
 'use client';
 
-import GatewayTable from '../components/table/gateway';
-import SearchTool from '../components/SearchTool';
-import styled from '@emotion/styled';
-import { TextField } from '@mui/material';
+import { TextField } from "@mui/material";
+import styled from "@emotion/styled";
+import GatewayTable from "@/app/components/table/gatewayForm";
 
 const Container = styled.div`
   overflow: auto;
@@ -18,19 +17,18 @@ const Header = styled.header`
   padding: 24px 0;
 `;
 
-export default function Gateway() {
-  return (
-    <Container>
-        <h1>Portaria</h1>
-      <Header>
-        <TextField
-          placeholder="Pesquisar"
-          variant="standard"
-          sx={{ width: '100%' }}
-        />
-        <SearchTool addBtnLink="/portaria/criar" />
-      </Header>
-      <GatewayTable />
-    </Container>
-  );
+export default function CreateGate() {
+    return (
+        <Container>
+            <h1>Registro da Portaria</h1>
+            <Header>
+                <TextField
+                placeholder="Pesquisar motorista, placa..."
+                variant="standard"
+                sx={{ width: '100%' }}
+                />
+            </Header>
+            <GatewayTable />
+        </Container>
+    );
 }

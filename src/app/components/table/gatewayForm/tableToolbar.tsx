@@ -1,6 +1,6 @@
-import { Toolbar, Tooltip, IconButton, Typography } from '@mui/material';
+import { Toolbar, Tooltip, IconButton, Typography, Box } from '@mui/material';
 import { alpha } from '@mui/material/styles';
-import DeleteIcon from '@mui/icons-material/Delete';
+import Link from 'next/link';
 
 interface GatewayTableToolBarProps {
   numSelected: number;
@@ -35,14 +35,17 @@ export default function GatewayTableToolbar(
           {numSelected} {numSelected > 1 ? 'selecionados' : 'selecionado'}
         </Typography>
       ) : (
-        <Typography
-          sx={{ flex: '1 1 100%' }}
-          variant="h6"
-          id="tableTitle"
-          component="div"
-        >
-          Movimentação
-        </Typography>
+        <Box sx={{ display: 'flex', alignItems: 'center', flexGrow: 1 }}>
+          <Typography
+            sx={{ flex: '1 1 100%' }}
+            variant="h6"
+            id="tableTitle"
+            component="div"
+          >
+            Movimentação
+          </Typography>
+          <Link href={'/portaria/historico'} >Histórico de movimentações</Link>
+        </Box>
       )}
     </Toolbar>
   );

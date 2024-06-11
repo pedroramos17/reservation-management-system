@@ -36,11 +36,7 @@ function createData(
   };
 }
 
-interface TabProps {
-  tabValue: number;
-}
-
-export default function GatewayTable({ tabValue }: Readonly<TabProps>) {
+export default function GatewayTable() {
   const [order, setOrder] = useState<Order>('asc');
   const [orderBy, setOrderBy] = useState<keyof GatewayData>('name');
   const [selected, setSelected] = useState<readonly string[]>([]);
@@ -128,10 +124,9 @@ const rows = [
   const visibleRows = useMemo(
     () =>
       rows
-        .slice(page * rowsPerPage, page * rowsPerPage + rowsPerPage)
-        .sort(getComparator(order, orderBy))
-        .filter((row) => (tabValue === 0 ? row.parked : !row.parked)),
-    [order, orderBy, page, rowsPerPage, tabValue],
+        .toSorted(getComparator(order, orderBy))
+        .slice(page * rowsPerPage, page * rowsPerPage + rowsPerPage),
+    [order, orderBy, page, rowsPerPage],
   );
 
   return (
