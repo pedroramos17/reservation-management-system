@@ -4,7 +4,7 @@ let request: IDBOpenDBRequest;
 let db: IDBDatabase;
 let version = 2;
 
-interface Vehicle {
+export interface Vehicle {
 	id: string;
 	brand: string;
 	model: string;
@@ -23,9 +23,10 @@ export interface Driver {
 
 export interface Gateway {
 	id: string;
-	date: string;
+	timestamp: string;
 	parked: boolean;
-	driver_id: string;
+	driverId: string;
+	vehicleId: string;
 }
 
 export enum Stores {
