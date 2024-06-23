@@ -108,7 +108,7 @@ const output = format(zonedDate, pattern, { timeZone: "Europe/Berlin" })
         id: driver.id,
         driverId: driver.id,
         name: driver.name,
-        car: `${driver.vehicles[0].model} ${driver.vehicles[0].brand} ${driver.vehicles[0].color} ${driver.vehicles[0].year}`,
+        car: `${driver.vehicles[0].brand} ${driver.vehicles[0].model} ${driver.vehicles[0].color} ${driver.vehicles[0].year}`,
         plate: driver.vehicles[0].plate,
         date: "Sem registro",
         hour: "Sem registro",
@@ -291,18 +291,16 @@ const output = format(zonedDate, pattern, { timeZone: "Europe/Berlin" })
 
                 return (
                   <TableRow
-                    hover
-                    onClick={(event) => handleClick(event, row.id)}
                     role="checkbox"
                     aria-checked={isItemSelected}
                     tabIndex={-1}
                     key={row.id}
                     selected={isItemSelected}
-                    sx={{ cursor: 'pointer' }}
                   >
                     <TableCell padding="checkbox">
                       <Checkbox
                         color="primary"
+                        onClick={(event) => handleClick(event, row.id)}
                         checked={isItemSelected}
                         inputProps={{
                           'aria-labelledby': labelId,
