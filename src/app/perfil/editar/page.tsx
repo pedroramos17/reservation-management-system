@@ -2,6 +2,7 @@
 
 import { TextField, Button } from '@mui/material';
 import styled from '@emotion/styled';
+import { useState } from 'react';
 
 const Container = styled.div`
   display: flex;
@@ -20,22 +21,28 @@ const Wrapper = styled.div`
 `;
 
 export default function Profile() {
+  const [estimate, setEstimate] = useState([0, 0] as unknown as string[]);	
   let percent = 0 as unknown as string;
   let quota = 0 as unknown as string;
-  navigator.storage.estimate().then((estimate) => {
-    percent = (
-      (estimate.usage as unknown as number) * (100 / (estimate.quota as unknown as number)) *
-      100
-    ).toFixed(2);
-    quota = ((estimate.quota as unknown as number) / 1024 / 1024).toFixed(2) + "MB";
-});
+  if(navigator) {
+    navigator.storage.estimate().then((estimate) => {
+      percent = (
+        (estimate.usage as unknown as number) * (100 / (estimate.quota as unknown as number)) *
+        100
+      ).toFixed(2);
+      quota = ((estimate.quota as unknown as number) / 1024 / 1024).toFixed(2) + "MB";
+  
+      setEstimate([percent, quota]);
+    });
+  }
+
   return (
     <Container>
       <h1>Preferências do Perfil</h1>
       <p>
         <h2>Informações do sistema</h2>
         <h3>Armazenamento</h3>
-      <label>Você está usando {percent}% do seu armazenamento no total disponível de {quota}.</label>
+      <label>Você está usando {estimate[0]}% do seu armazenamento no total disponível de {estimate[1]}.</label>
       </p>
       <form
         style={{
