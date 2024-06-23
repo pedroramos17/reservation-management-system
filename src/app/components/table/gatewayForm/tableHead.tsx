@@ -3,37 +3,39 @@ import {
   TableHead,
   TableRow,
   TableCell,
-  Checkbox,
   TableSortLabel,
   Box,
+  Checkbox,
 } from '@mui/material';
 import { visuallyHidden } from '@mui/utils';
-import { GatewayData } from '../../../../interfaces/gateway.interface';
+import { GatehouseData } from '../../../../interfaces/gateway.interface';
 import { Order } from '../sorting';
 
 type Align = 'left' | 'center' | 'right' | 'justify' | 'inherit';
 
 interface HeadCell {
   disablePadding: boolean;
-  id: keyof GatewayData;
+  id: keyof GatehouseData;
   label: string;
   align: Align;
 }
 
 const headCells: readonly HeadCell[] = [
   { id: 'name', align: 'left', disablePadding: true, label: 'Nome' },
-  { id: 'rg', align: 'center', disablePadding: false, label: 'RG' },
-  { id: 'phone', align: 'center', disablePadding: false, label: 'Telefone' },
+  { id: 'car', align: 'center', disablePadding: false, label: 'Carro' },
   { id: 'plate', align: 'center', disablePadding: false, label: 'Placa' },
-  { id: 'parked', align: 'center', disablePadding: false, label: 'Estacionou' },
+  { id: 'date', align: 'center', disablePadding: false, label: 'Data' },
+  { id: 'hour', align: 'center', disablePadding: false, label: 'Hora' },
+  { id: 'type', align: 'center', disablePadding: false, label: 'Tipo' },
 ];
 
 interface GatewayTableProps {
   numSelected: number;
   onRequestSort: (
     event: MouseEvent<unknown>,
-    property: keyof GatewayData,
+    property: keyof GatehouseData,
   ) => void;
+  onSelectAllClick: (event: React.ChangeEvent<HTMLInputElement>) => void;
   order: Order;
   orderBy: string;
   rowCount: number;
@@ -41,6 +43,7 @@ interface GatewayTableProps {
 
 export default function GatewayTableHead(props: Readonly<GatewayTableProps>) {
   const {
+    onSelectAllClick,
     order,
     orderBy,
     numSelected,
@@ -48,14 +51,24 @@ export default function GatewayTableHead(props: Readonly<GatewayTableProps>) {
     onRequestSort,
   } = props;
   const createSortHandler =
-    (property: keyof GatewayData) => (event: React.MouseEvent<unknown>) => {
+    (property: keyof GatehouseData) => (event: React.MouseEvent<unknown>) => {
       onRequestSort(event, property);
     };
 
   return (
     <TableHead>
       <TableRow>
-        <TableCell></TableCell>
+      <TableCell padding="checkbox">
+          <Checkbox
+            color="primary"
+            indeterminate={numSelected > 0 && numSelected < rowCount}
+            checked={rowCount > 0 && numSelected === rowCount}
+            onChange={onSelectAllClick}
+            inputProps={{
+              'aria-label': 'selecionar todos os motoristas',
+            }}
+          />
+        </TableCell>
         {headCells.map((headCell) => (
           <TableCell
             key={headCell.id}
@@ -77,6 +90,7 @@ export default function GatewayTableHead(props: Readonly<GatewayTableProps>) {
             </TableSortLabel>
           </TableCell>
         ))}
+        <TableCell></TableCell>
       </TableRow>
     </TableHead>
   );

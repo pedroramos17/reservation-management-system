@@ -2,7 +2,10 @@ import { TextField } from "@mui/material";
 import { usePathname, useRouter, useSearchParams } from "next/navigation";
 import { useDebouncedCallback } from "use-debounce";
 
-export default function Search() {
+export default function Search(props: Readonly<{
+    placeholder: string
+}>) {
+    const { placeholder } = props;
     const searchParams = useSearchParams();
     const pathname = usePathname();
     const { replace } = useRouter();
@@ -19,7 +22,7 @@ export default function Search() {
 
     return (
         <TextField
-          placeholder="Pesquisar"
+          placeholder={placeholder}
           variant="standard"
           sx={{ width: '100%' }}
           onChange={(e) => handleSearch(e.target.value)}

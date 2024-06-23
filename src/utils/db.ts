@@ -4,8 +4,12 @@ let request: IDBOpenDBRequest;
 let db: IDBDatabase;
 let version = 2;
 
-export interface Vehicle {
+interface DataProps {
 	id: string;
+	updatedAt: string;
+	createdAt: string;
+}
+export interface Vehicle extends DataProps {
 	brand: string;
 	model: string;
 	year: number;
@@ -13,17 +17,14 @@ export interface Vehicle {
 	plate: string;
 }
 
-export interface Driver {
-	id: string;
+export interface Driver extends DataProps {
 	name: string;
 	rg: string;
 	phone: string;
 	vehicles: Vehicle[];
 }
 
-export interface Gateway {
-	id: string;
-	timestamp: string;
+export interface Gateway extends Omit<DataProps, "updatedAt"> {
 	parked: boolean;
 	driverId: string;
 	vehicleId: string;

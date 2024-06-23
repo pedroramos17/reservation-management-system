@@ -42,7 +42,7 @@ export default function GatewayTableToolbar(
             id="tableTitle"
             component="div"
           >
-            Movimentação
+            Motoristas
           </Typography>
           <Link href={'/portaria/historico'} >Histórico de movimentações</Link>
         </Box>

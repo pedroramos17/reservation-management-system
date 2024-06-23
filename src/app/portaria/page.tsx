@@ -1,8 +1,8 @@
 'use client';
 
-import { TextField } from "@mui/material";
 import styled from "@emotion/styled";
 import GatewayTable from "@/app/components/table/gatewayForm";
+import Search from "../components/Search";
 
 const Container = styled.div`
   overflow: auto;
@@ -17,18 +17,21 @@ const Header = styled.header`
   padding: 24px 0;
 `;
 
-export default function CreateGate() {
+export default function CreateGate({
+  searchParams,
+}: Readonly<{
+  searchParams?: {
+    query?: string;
+  };
+}>) {
+  const query = searchParams?.query ?? '';
     return (
         <Container>
             <h1>Registro da Portaria</h1>
             <Header>
-                <TextField
-                placeholder="Pesquisar motorista, placa..."
-                variant="standard"
-                sx={{ width: '100%' }}
-                />
+                <Search placeholder="Pesquisar motoristas" />
             </Header>
-            <GatewayTable />
+            <GatewayTable query={query} />
         </Container>
     );
 }

@@ -8,6 +8,7 @@ import ArrowBack from '@mui/icons-material/ArrowBack';
 import { Formik, Form, FieldArray, FormikHelpers, getIn } from 'formik'
 import * as Yup from 'yup'
 import { initDB, addData, getStoreData, Stores, Driver, findOneData, updateData } from '@/utils/db';
+import dateParseBr from '@/utils/date';
 
 const Container = styled.div`
   display: flex;
@@ -90,6 +91,7 @@ export default function DriverForm(props: Readonly<UrlParams>) {
     ]
   })
 
+  const timestamp = dateParseBr(new Date());
   const handleInitDB = async () => {
     const status = await initDB();
     setIsDBReady(status);
@@ -97,12 +99,9 @@ export default function DriverForm(props: Readonly<UrlParams>) {
 
   const handleAddDriver = async (values: DriverFormValues) => {
     const { name, rg, phone, vehicles } = values;
-    let id = self.crypto.randomUUID();
-
-    id = new Date().toISOString() + "|" + id;
-
+    const id = self.crypto.randomUUID();
     try {
-      await addData(Stores.Drivers, { name, rg, phone, vehicles, id });
+      await addData(Stores.Drivers, { id, name, rg, phone, vehicles, createdAt: timestamp, updateAt: timestamp });
     } catch (err: unknown) {
       if (err instanceof Error) {
         console.error(err.message);
@@ -116,7 +115,7 @@ export default function DriverForm(props: Readonly<UrlParams>) {
   const handleEditDriver = async (values: DriverFormValues) => {
     const { name, rg, phone, vehicles } = values;
     try {
-      await updateData(Stores.Drivers, id, { name, rg, phone, vehicles });
+      await updateData(Stores.Drivers, id, { name, rg, phone, vehicles, updateAt: timestamp });
     } catch (err: unknown) {
       if (err instanceof Error) {
         console.error(err.message);

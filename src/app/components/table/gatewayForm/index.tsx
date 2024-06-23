@@ -1,6 +1,8 @@
 'use client';
 
-import React, { useEffect, useMemo, useState } from 'react';
+
+import { toZonedTime, format } from "date-fns-tz";
+import React, { useCallback, useEffect, useMemo, useState } from 'react';
 import {
   Table,
   TableBody,
@@ -11,79 +13,217 @@ import {
   Checkbox,
   Paper,
   Box,
+  Button,
 } from '@mui/material';
-import { GatewayData } from '../../../../interfaces/gateway.interface';
+import FlexSearch from 'flexsearch';
+import { GatehouseData } from '../../../../interfaces/gateway.interface';
 import getComparator, { Order } from '../sorting';
 import GatewayTableToolbar from './tableToolbar';
 import GatewayTableHead from './tableHead';
-import { initDB, getStoreData, Driver, Gateway, Stores } from '@/utils/db';
+import { initDB, getStoreData, Driver, Gateway, Stores, Vehicle } from '@/utils/db';
+import dateParseBr from '@/utils/date';
 
-function createData(
-  id: string,
-  name: string,
-  rg: number,
-  phone: number,
-  plate: string,
-  parked: boolean,
-): GatewayData {
-  return {
-    id,
-    name,
-    rg,
-    phone,
-    plate,
-    parked,
-  };
+interface GatewayProps extends GatehouseData {
+  driverId: string;
 }
 
-export default function GatewayTable() {
+export default function GatewayTable({
+  query,
+}: Readonly<{
+  query: string;
+}>) {
   const [order, setOrder] = useState<Order>('asc');
-  const [orderBy, setOrderBy] = useState<keyof GatewayData>('name');
+  const [orderBy, setOrderBy] = useState<keyof GatehouseData>('name');
   const [selected, setSelected] = useState<readonly string[]>([]);
   const [page, setPage] = useState(0);
   const [rowsPerPage, setRowsPerPage] = useState(5);
   const [isDBReady, setIsDBReady] = useState<boolean>(false);
   const [drivers, setDrivers] = useState<Driver[]|[]>([]);
   const [gateways, setGateways] = useState<Gateway[]|[]>([]);
+  const [gatewayFormData, setGatewayFormData] = useState<Gateway>({
+    id: "",
+    parked: false,
+    driverId: "",
+    vehicleId: "",
+    createdAt: "",
+  })
 
-  const handleInitDB = async () => {
+  const date = new Date("2018-09-01T16:01:36.386Z");
+  const timeZone = "Europe/Berlin";
+  const zonedDate = toZonedTime(date, timeZone);
+
+  const pattern = "d.M.yyyy HH:mm:ss.SSS 'GMT' XXX (z)";
+const output = format(zonedDate, pattern, { timeZone: "Europe/Berlin" })
+  console.log(output)
+
+  function mergeGatewaysWithDrivers(gateways: Gateway[], drivers: Driver[]) {
+    const driversWithGateway = drivers.filter((driver) => {
+      return gateways.some((gateway) => {
+        return gateway.driverId === driver.id
+      })
+    })
+    /**
+     * Merges gateways with drivers and returns an array of GatehouseData objects.
+     *
+     * @param {Gateway[]} gateways - An array of Gateway objects.
+     * @param {Driver[]} drivers - An array of Driver objects.
+     * @return {GatewayProps[]} An array of GatehouseData objects.
+     */
+    const entriesByDrivers: GatewayProps[] = gateways.map((gateway: Gateway): GatewayProps | undefined => {
+      
+      const driver: Driver | undefined = driversWithGateway.find((driver: Driver) => {
+        return driver.id === gateway.driverId
+      })
+      if (driver) {
+        const vehicle: Vehicle | undefined = driver.vehicles.find((vehicle: Vehicle) => {
+          return vehicle.id === gateway.vehicleId
+        }) ?? {
+          id: "",
+          brand: "",
+          model: "",
+          year: 0,
+          color: "",
+          plate: "",
+          createdAt: "",
+          updatedAt: "",
+        };
+        return {
+          id: gateway.id,
+          driverId: gateway.driverId,
+          name: driver.name,
+          car: `${vehicle.model} ${vehicle.brand} ${vehicle.color} ${vehicle.year}`,
+          plate: vehicle.plate,
+          date: (gateway.createdAt as unknown as Date).toLocaleDateString('pt-BR'),
+          hour: (gateway.createdAt as unknown as Date).toLocaleTimeString('pt-BR'),
+          type: gateway.parked ? "Entrada" : "Saída",
+        };
+      }
+    }).filter((entry): entry is GatewayProps => entry !== undefined);
+    const driversWithoutGateway = drivers.filter((driver) => {
+      return !gateways.some((gateway) => {
+        return gateway.driverId === driver.id
+      })
+    }).map((driver) => {
+      return {
+        id: driver.id,
+        driverId: driver.id,
+        name: driver.name,
+        car: `${driver.vehicles[0].model} ${driver.vehicles[0].brand} ${driver.vehicles[0].color} ${driver.vehicles[0].year}`,
+        plate: driver.vehicles[0].plate,
+        date: "Sem registro",
+        hour: "Sem registro",
+        type: "Sem Entrada/Saida",
+      }
+       })
+      
+      const gatewaysData = [...entriesByDrivers, ...driversWithoutGateway];
+      
+      return gatewaysData;
+  }
+  const gatewaysData = mergeGatewaysWithDrivers(gateways, drivers);
+
+  function fetchFilteredDrivers(query: string, drivers: Driver[]|[]) {
+    const DriverDocument = new FlexSearch.Document({
+      document: {
+        id: 'id',
+        index: 'name',
+      },
+      charset: 'latin:advanced',
+      tokenize: 'reverse',
+      cache: true,
+      preset: 'performance',
+    })
+
+    for (const driver of drivers) {
+      DriverDocument.add({
+        id: driver.id,
+        name: driver.name,
+      })
+    }
+      
+    const results = DriverDocument.search(query, { suggest: true });
+
+    return results;
+  }
+  
+  const driversResponse = fetchFilteredDrivers(query, drivers);
+
+  let driversIds: any = [];
+  driversResponse.forEach((response) => {
+    driversIds = response['result'];
+  })
+
+  const rows = query ? gatewaysData.filter((gatewaysData) => driversIds.includes(gatewaysData.driverId)) : gatewaysData;
+
+  const handleInitDB = useCallback(async () => {
     const status = await initDB();
     setIsDBReady(!!status);
-  };
+  }, [setIsDBReady]);
 
-  const handleGetDrivers = async () => {
-    if (!isDBReady) {
-      await handleInitDB();
-    }
-    const drivers = await getStoreData<Driver>(Stores.Drivers);
-    setDrivers(drivers);
-  };
-  
-  const handleGetGateways = async () => {
+  const handleGetGateways = useCallback(async () => {
     if (!isDBReady) {
       await handleInitDB();
     }
     const gateways = await getStoreData<Gateway>(Stores.Gateways);
+    const drivers = await getStoreData<Driver>(Stores.Drivers);
     setGateways(gateways);
-  };
+    setDrivers(drivers);
+  }, [handleInitDB, isDBReady]);	
 
   useEffect(() => {
     handleGetGateways();
-  }, [])
-  
-  const formatedData = {drivers, gateways};
-  console.log(formatedData);
-const rows = [
-  createData('id-1', 'Joaquim', 123456789, 3456256735, 'FEGW-1234', true),
-];
+  }, [handleGetGateways])
 
+  const handleGatewayDriver = (driverId: string) => {
+    /**
+     * Pseudo code
+     * 
+     * Implement a logic like create a new entry and
+     *  new exit to save timestamp where is so important
+     *  to log and tie spent controller.
+     * 
+     * filter only drivers that are parked to register the exit
+     * and the driver that is not parked to register the entry
+     * 
+     */
+    let uuid = self.crypto.randomUUID();
+
+    const driverResponse = drivers.find((driver) => driver.id === driverId) as Driver;
+    
+    if (driverResponse) {
+      const driverId = driverResponse.id;
+
+      const driverWithGateway = gateways.filter((gateway) => gateway.driverId === driverId);
+      const lastDriverWithGateway = driverWithGateway.toReversed().at(-1);
+      if (lastDriverWithGateway) {
+        setGatewayFormData({
+          id: uuid,
+          parked: !lastDriverWithGateway.parked,
+          driverId: lastDriverWithGateway.driverId,
+          vehicleId: lastDriverWithGateway.vehicleId,
+          createdAt: dateParseBr(new Date()),
+        })
+        console.log(lastDriverWithGateway);
+        }
+      }
+    }
   const handleRequestSort = (
     _: React.MouseEvent<unknown>,
-    property: keyof GatewayData,
+    property: keyof GatehouseData,
   ) => {
     const isAsc = orderBy === property && order === 'asc';
     setOrder(isAsc ? 'desc' : 'asc');
     setOrderBy(property);
+  };
+
+  const handleSelectAllClick = (event: React.ChangeEvent<HTMLInputElement>) => {
+    if (event.target.checked) {
+      const newSelected = rows.map((n) => n.id);
+      console.log(newSelected);
+      setSelected(newSelected);
+      return;
+    }
+    setSelected([]);
   };
 
   const handleClick = (event: React.MouseEvent<unknown>, id: string) => {
@@ -126,7 +266,7 @@ const rows = [
       rows
         .toSorted(getComparator(order, orderBy))
         .slice(page * rowsPerPage, page * rowsPerPage + rowsPerPage),
-    [order, orderBy, page, rowsPerPage],
+    [rows, order, orderBy, page, rowsPerPage],
   );
 
   return (
@@ -140,8 +280,9 @@ const rows = [
               numSelected={selected.length}
               order={order}
               orderBy={orderBy}
+              onSelectAllClick={handleSelectAllClick}
               onRequestSort={handleRequestSort}
-              rowCount={rows.length }
+              rowCount={rows.length}
             />
             <TableBody>
               {visibleRows.map((row, index) => {
@@ -176,11 +317,15 @@ const rows = [
                     >
                       {row.name}
                     </TableCell>
-                    <TableCell align="center">{row.rg}</TableCell>
-                    <TableCell align="center">{row.phone}</TableCell>
+                    <TableCell align="center">{row.car}</TableCell>
                     <TableCell align="center">{row.plate}</TableCell>
-                    <TableCell align="center">
-                      {row.parked ? 'sim' : 'não'}
+                    <TableCell align="center">{row.date}</TableCell>
+                    <TableCell align="center">{row.hour}</TableCell>
+                    <TableCell align="center">{row.type}</TableCell>
+                    <TableCell>
+                      <Button variant="contained" color="primary" onClick={() => handleGatewayDriver(row.id)} >
+                        {row.type === 'Entrada' ? 'Registrar saída' : 'Registrar entrada'}
+                      </Button>
                     </TableCell>
                   </TableRow>
                 );

@@ -46,7 +46,7 @@ export default function DriverTableToolbar(
         </Typography>
       )}
       {numSelected > 0 ? (
-      <Tooltip title="Excluir" onClick={async () => onDeleteSelectedDrivers(numSelected.toString())}>
+      <Tooltip title="Excluir" onClick={async () => onDeleteSelectedDrivers([numSelected.toString()])}>
           <IconButton>
             <DeleteIcon />
           </IconButton>

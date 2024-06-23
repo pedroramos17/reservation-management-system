@@ -16,20 +16,16 @@ import { GatehouseData } from '../../../../interfaces/gateway.interface';
 import GatewayTableHead from './tableHead';
 import GatewayTableToolbar from './tableToolbar';
 import getComparator, { Order } from '../sorting';
-import { initDB, getStoreData, Gateway, Stores, Driver, findOneData, Vehicle } from '@/utils/db';
-
-interface GatewayData extends GatehouseData {
-  name: string;
-}; 
+import { initDB, getStoreData, Gateway, Stores, Driver, Vehicle } from '@/utils/db';
 
 export default function GatewayTable() {
   const [order, setOrder] = useState<Order>('asc');
-  const [orderBy, setOrderBy] = useState<keyof GatewayData>('name');
+  const [orderBy, setOrderBy] = useState<keyof GatehouseData>('name');
   const [selected, setSelected] = useState<readonly string[]>([]);
   const [page, setPage] = useState(0);
   const [rowsPerPage, setRowsPerPage] = useState(5);
   const [isDBReady, setIsDBReady] = useState<boolean>(false);
-  const [gatewaysData, setGatewaysData] = useState<GatewayData[]|[]>([]);
+  const [gatewaysData, setGatewaysData] = useState<GatehouseData[]|[]>([]);
 
   const rows = gatewaysData;
   const handleInitDB = async () => {
@@ -120,8 +116,8 @@ export default function GatewayTable() {
   const visibleRows = useMemo(
     () =>
       rows
-        .slice(page * rowsPerPage, page * rowsPerPage + rowsPerPage)
-        .sort(getComparator(order, orderBy)),
+        .toSorted(getComparator(order, orderBy))
+        .slice(page * rowsPerPage, page * rowsPerPage + rowsPerPage),
     [order, orderBy, page, rowsPerPage],
   );
 
