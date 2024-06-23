@@ -12,6 +12,7 @@ import {
   TablePagination,
 } from '@mui/material';
 import React, { useState, useMemo, useEffect } from 'react';
+import moment from "moment";
 import { GatehouseData } from '../../../../interfaces/gateway.interface';
 import GatewayTableHead from './tableHead';
 import GatewayTableToolbar from './tableToolbar';
@@ -40,6 +41,8 @@ export default function GatewayTable() {
     const gateways = await getStoreData<Gateway>(Stores.Gateways);
     const drivers = await getStoreData<Driver>(Stores.Drivers);
     const gatewaysData = gateways.map((gateway) => {
+      const date = moment(gateway.createdAt).format('DD/MM/YYYY')
+      const time = moment(gateway.createdAt).format('HH:mm:ss')
       const driver = drivers.find((driver) => driver.id === gateway.driverId) as Driver;
       const vehicle = driver.vehicles.find((vehicle) => vehicle.id === gateway.vehicleId) as Vehicle;
       return {
@@ -47,8 +50,8 @@ export default function GatewayTable() {
         name: driver.name,
         car: `${vehicle.model} ${vehicle.brand} ${vehicle.color} ${vehicle.year}`,
         plate: vehicle.plate,
-        date: gateway.timestamp,
-        hour: gateway.timestamp,
+        date: date,
+        hour: time,
         type: gateway.parked ? 'Entrada' : 'Saida',
       }
     })
