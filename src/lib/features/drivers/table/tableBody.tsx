@@ -1,8 +1,8 @@
 import { Button, Checkbox, TableBody, TableCell, TableRow } from "@mui/material";
-import getComparator, { Order } from "../sorting";
-import { DriverData } from "@/interfaces/driver.interface";
+import getComparator, { Order } from "@/lib/utils/sorting";
+import { DriverData } from "@/lib/interfaces/driver.interface";
 import { useMemo } from "react";
-import { Driver } from "@/utils/db";
+import { Driver } from "@/lib/utils/db";
 
 export default function TableBodyCustom(props: Readonly<{
     rows: Driver[];

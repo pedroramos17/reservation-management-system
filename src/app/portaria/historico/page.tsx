@@ -1,6 +1,6 @@
 'use client';
 
-import GatewayTable from '@/app/components/table/gateway';
+import GatewayTable from '@/lib/common/components/table/gateway';
 import styled from '@emotion/styled';
 import { ArrowBack } from '@mui/icons-material';
 import { IconButton, TextField } from '@mui/material';

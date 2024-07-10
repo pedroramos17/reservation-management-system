@@ -1,8 +1,8 @@
 'use client';
 
 import styled from "@emotion/styled";
-import GatewayTable from "@/app/components/table/gatewayForm";
-import Search from "../components/Search";
+import GatewayTable from "@/lib/common/components/table/gatewayForm";
+import Search from "../../lib/common/components/Search";
 
 const Container = styled.div`
   overflow: auto;

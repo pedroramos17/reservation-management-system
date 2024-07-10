@@ -1,3 +1,5 @@
+'use client';
+
 import React from 'react';
 import {
   TableHead,
@@ -8,32 +10,29 @@ import {
   Box,
 } from '@mui/material';
 import { visuallyHidden } from '@mui/utils';
-import { GatehouseData } from '@/interfaces/gateway.interface';
-import { Order } from '../sorting';
+import { DriverData } from '@/lib/interfaces/driver.interface';
+import { Order } from '@/lib/utils/sorting';
 
 type Align = 'left' | 'center' | 'right' | 'justify' | 'inherit';
 
 interface HeadCell {
-  id: keyof GatehouseData;
   disablePadding: boolean;
-  align: Align;
+  id: keyof DriverData;
   label: string;
+  align: Align;
 }
 
 const headCells: readonly HeadCell[] = [
   { id: 'name', align: 'left', disablePadding: true, label: 'Nome' },
-  { id: 'car', align: 'center', disablePadding: false, label: 'Carro' },
-  { id: 'plate', align: 'center', disablePadding: false, label: 'Placa' },
-  { id: 'date', align: 'center', disablePadding: false, label: 'Data' },
-  { id: 'hour', align: 'center', disablePadding: false, label: 'Hora' },
-  { id: 'type', align: 'center', disablePadding: false, label: 'Tipo' },
+  { id: 'rg', align: 'center', disablePadding: false, label: 'RG' },
+  { id: 'phone', align: 'center', disablePadding: false, label: 'Telefone' },
 ];
 
 interface GatewayTableProps {
   numSelected: number;
   onRequestSort: (
     event: React.MouseEvent<unknown>,
-    property: keyof GatehouseData,
+    property: keyof DriverData,
   ) => void;
   onSelectAllClick: (event: React.ChangeEvent<HTMLInputElement>) => void;
   order: Order;
@@ -51,7 +50,7 @@ export default function GatewayTableHead(props: Readonly<GatewayTableProps>) {
     onRequestSort,
   } = props;
   const createSortHandler =
-    (property: keyof GatehouseData) => (event: React.MouseEvent<unknown>) => {
+    (property: keyof DriverData) => (event: React.MouseEvent<unknown>) => {
       onRequestSort(event, property);
     };
 
@@ -65,7 +64,7 @@ export default function GatewayTableHead(props: Readonly<GatewayTableProps>) {
             checked={rowCount > 0 && numSelected === rowCount}
             onChange={onSelectAllClick}
             inputProps={{
-              'aria-label': 'selecionar todas as movimentações',
+              'aria-label': 'selecionar todos os motoristas',
             }}
           />
         </TableCell>
@@ -90,6 +89,8 @@ export default function GatewayTableHead(props: Readonly<GatewayTableProps>) {
             </TableSortLabel>
           </TableCell>
         ))}
+        <TableCell></TableCell>
+        <TableCell></TableCell>
       </TableRow>
     </TableHead>
   );

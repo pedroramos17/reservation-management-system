@@ -4,7 +4,7 @@ import { Tabs } from '@mui/base/Tabs';
 import { TabsList as BaseTabsList } from '@mui/base/TabsList';
 import { buttonClasses } from '@mui/base/Button';
 import { Tab as BaseTab, tabClasses } from '@mui/base/Tab';
-import {HandleTabsProps} from '@/interfaces/tab.interface';
+import {HandleTabsProps} from '@/lib/interfaces/tab.interface';
 
 const blue = {
   50: '#F0F7FF',

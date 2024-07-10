@@ -86,9 +86,9 @@ function con(config?: IndexedDBConfig): Promise<IDBDatabase> {
 	if (!dbName || !version) {
 		throw new Error("Database name and version are required");
 	}
+	const request = indexedDB.open(dbName, version);
+	let db: IDBDatabase;
 	return new Promise<IDBDatabase>((resolve, reject) => {
-		const request = indexedDB.open(dbName, version);
-		let db: IDBDatabase;
 		request.onsuccess = () => {
 			db = request.result;
 			resolve(db);
@@ -105,10 +105,12 @@ function con(config?: IndexedDBConfig): Promise<IDBDatabase> {
 				upgradeCallback(event, db);
 			};
 		}
+	}).finally(() => {
+		db.close();
 	});
 }
 
-const useUpgradeCallback = (e: Event, db: IDBDatabase) => {
+const useUpgradeCallback = (_: Event, db: IDBDatabase) => {
 	const stores = useSchema(schemas);
 	stores.forEach((s) => {
 		if (!db.objectStoreNames.contains(s.name)) {
@@ -118,7 +120,6 @@ const useUpgradeCallback = (e: Event, db: IDBDatabase) => {
 			});
 		}
 	});
-	db.close();
 };
 const idbReducer = <T>(
 	state: IDBState<T>,

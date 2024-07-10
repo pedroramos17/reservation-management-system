@@ -17,7 +17,7 @@ import { GatehouseData } from '../../../../interfaces/gateway.interface';
 import GatewayTableHead from './tableHead';
 import GatewayTableToolbar from './tableToolbar';
 import getComparator, { Order } from '../sorting';
-import { initDB, getStoreData, Gateway, Stores, Driver, Vehicle } from '@/utils/db';
+import { initDB, getStoreData, Gateway, Stores, Driver, Vehicle } from '@/lib/utils/db';
 
 export default function GatewayTable() {
   const [order, setOrder] = useState<Order>('asc');

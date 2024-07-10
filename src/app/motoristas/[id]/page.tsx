@@ -1,4 +1,4 @@
-import DriverForm from '@/app/components/forms/DriverForm';
+import DriverForm from '@/lib/common/components/forms/DriverForm';
 
 export default function EditFormDriver({ params }: Readonly<{ params: { id: string } }>) {
   const { id } = params;

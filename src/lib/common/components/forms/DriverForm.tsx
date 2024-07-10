@@ -7,8 +7,8 @@ import RemoveIcon from '@mui/icons-material/Remove';
 import ArrowBack from '@mui/icons-material/ArrowBack';
 import { Formik, Form, FieldArray, FormikHelpers, getIn } from 'formik'
 import * as Yup from 'yup'
-import { initDB, addData, getStoreData, Stores, Driver, findOneData, updateData } from '@/utils/db';
-import dateParseBr from '@/utils/date';
+import { initDB, addData, getStoreData, Stores, Driver, findOneData, updateData } from '@/lib/utils/db';
+import dateParseBr from '@/lib/utils/date';
 
 const Container = styled.div`
   display: flex;

@@ -17,11 +17,11 @@ import {
 } from '@mui/material';
 import FlexSearch from 'flexsearch';
 import { GatehouseData } from '../../../../interfaces/gateway.interface';
-import getComparator, { Order } from '../sorting';
+import getComparator, { Order } from '@/lib/utils/sorting';
 import GatewayTableToolbar from './tableToolbar';
 import GatewayTableHead from './tableHead';
-import { initDB, getStoreData, Driver, Gateway, Stores, Vehicle } from '@/utils/db';
-import dateParseBr from '@/utils/date';
+import { initDB, getStoreData, Driver, Gateway, Stores, Vehicle } from '@/lib/utils/db';
+import dateParseBr from '@/lib/utils/date';
 
 interface GatewayProps extends GatehouseData {
   driverId: string;

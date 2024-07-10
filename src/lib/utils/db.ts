@@ -97,7 +97,7 @@ const addData = <T>(storeName: string, data: T): Promise<DataType<T>> => {
 	});
 };
 
-const deleteData = (storeName: string, key: string): Promise<boolean> => {
+const deleteData = (storeName: string, key: string): Promise<string> => {
 	return new Promise((resolve) => {
 		request = window.indexedDB.open(DB_NAME, version);
 
@@ -108,11 +108,16 @@ const deleteData = (storeName: string, key: string): Promise<boolean> => {
 			const store = tx.objectStore(storeName);
 			const res = store.delete(key);
 			res.onsuccess = () => {
-				resolve(true);
+				resolve(key);
 			};
 			res.onerror = (e) => {
 				(e.target as any).result.close();
-				resolve(false);
+				const error = request.error?.message;
+				if (error) {
+					resolve(error);
+				} else {
+					resolve("Unknown error");
+				}
 			};
 		};
 	});

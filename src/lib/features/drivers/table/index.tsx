@@ -8,11 +8,11 @@ import {
   Paper,
   Box,
 } from '@mui/material';
-import { Order } from '../sorting';
+import { Order } from '@/lib/utils/sorting';
 import DriverTableToolbar from './tableToolbar';
 import DriverTableHead from './tableHead';
-import { DriverData } from '@/interfaces/driver.interface';
-import { Driver } from '@/utils/db';
+import { DriverData } from '@/lib/interfaces/driver.interface';
+import { Driver } from '@/lib/utils/db';
 import TableBodyCustom from './tableBody';
 
 export default function DriverTable({
