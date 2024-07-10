@@ -1,6 +1,6 @@
 # Demo Barkin
 
-This is a demo of Barkin (parking management) working offline-first
+This is a demo of Barkin (parking management) working as offline-first app.
 
 [click here to check it out](https://demo-barkin-pedroramos17.vercel.app/)
 
@@ -9,7 +9,8 @@ This is a demo of Barkin (parking management) working offline-first
 
 - [X] ~~CRUD drivers~~
 - [X] ~~Array of vehicles~~
-- [ ] Full-text search in IndexedDB
+- [X] ~~Full-text search in IndexedDB~~
+- [ ] Adding global state (RTK)
 - [ ] Gate entry/exit
 - [ ] Export report in PDF/Spreadsheet
 
