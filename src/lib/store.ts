@@ -1,9 +1,9 @@
 import { configureStore } from "@reduxjs/toolkit";
-import driverSlice from "./features/drivers/driversSlice";
+import driverReducer from "./features/drivers/driversSlice";
 export const makeStore = () => {
 	return configureStore({
 		reducer: {
-			drivers: driverSlice,
+			drivers: driverReducer,
 		},
 	});
 };
