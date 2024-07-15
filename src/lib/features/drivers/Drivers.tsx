@@ -4,23 +4,35 @@ import DriverTable from '@/lib/features/drivers/table';
 import SearchTool from '@/lib/common/components/SearchTool';
 import { Container, HeaderContainer } from '@/lib/common/components/styles';
 import Search from '@/lib/common/components/Search';
-import { useCallback, useEffect, useState } from 'react';
+import { useEffect, useState } from 'react';
 import FlexSearch from 'flexsearch';
-import { initDB, getStoreData, deleteData, Driver, Stores, findOneData, deleteManyData } from '@/lib/utils/db';
+import { Driver } from '@/lib/utils/db';
+import { useAppDispatch, useAppSelector } from "@/lib/common/hooks/hooks"
+import { getDrivers, deleteDriver } from '@/lib/features/drivers/driversSlice';
 
+    
+function fetchFilteredDrivers(query: string, drivers: Driver[]|[]) {
+  const DriverDocument = new FlexSearch.Document({
+    document: {
+      id: 'id',
+      index: 'name',
+    },
+    charset: 'latin:advanced',
+    tokenize: 'reverse',
+    cache: true,
+    preset: 'performance',
+  })
 
-type driverResponse = {
-  id: string;
-  name: string;
-  rg: string;
-  phone: string;
-  vehicles: {
-    brand?: string;
-    model?: string;
-    year?: string;
-    color?: string;
-    plate?: string;
+  for (const driver of drivers) {
+    DriverDocument.add({
+      id: driver.id,
+      name: driver.name,
+    })
   }
+    
+  const results = DriverDocument.search(query, { suggest: true });
+
+  return results;
 }
 
 export default function DriverPage({
@@ -30,35 +42,15 @@ export default function DriverPage({
     query?: string;
   };
 }>) {
-  const [isDBReady, setIsDBReady] = useState<boolean>(false);
-  const [drivers, setDrivers] = useState<Driver[]|[]>([]);
+  const dispatch = useAppDispatch();
+  const { entities , loading, error } = useAppSelector((state) => state.drivers)
+  const [driversState, setDriversState] = useState<Driver[]|[]>([]);
   const query = searchParams?.query ?? '';
-
-    
-  function fetchFilteredDrivers(query: string, drivers: Driver[]|[]) {
-    const DriverDocument = new FlexSearch.Document({
-      document: {
-        id: 'id',
-        index: 'name',
-      },
-      charset: 'latin:advanced',
-      tokenize: 'reverse',
-      cache: true,
-      preset: 'performance',
-    })
-
-    for (const driver of drivers) {
-      DriverDocument.add({
-        id: driver.id,
-        name: driver.name,
-      })
-    }
-      
-    const results = DriverDocument.search(query, { suggest: true });
-
-    return results;
-  }
   
+  const driversValues = Object.values(entities)
+  const testDrivers = Object.values(driversValues[0])
+  const drivers = testDrivers
+  console.log(testDrivers)
   const driversResponse = fetchFilteredDrivers(query, drivers);
 
   let searchedDriversIds: any = [];
@@ -66,65 +58,32 @@ export default function DriverPage({
     searchedDriversIds = response['result'];
   })
 
-  const handleInitDB = useCallback(async () => {
-    const status = await initDB();
-    setIsDBReady(!!status);
-  }, [setIsDBReady]);
-  
-  const handleGetDrivers = useCallback(async () => {
-    if (!isDBReady) {
-      await handleInitDB();
-    }
-    const drivers = await getStoreData<Driver>(Stores.Drivers);
-    setDrivers(drivers);
-  }, [isDBReady, handleInitDB]);
+  useEffect(() => {
+    dispatch(getDrivers())
+  }, [dispatch])
 
   useEffect(() => {
-    handleGetDrivers();
-  }, [handleGetDrivers])
+    setDriversState(drivers)
+  }, [])
 
-  const handleDeleteDriver = async (id: string) => {
-    if (!isDBReady) {
-      await handleInitDB();
-    }
-    try {
-      await deleteData(Stores.Drivers, id);
-      // refetch drivers after deleting data
-      handleGetDrivers();
-    } catch (err: unknown) {
-      if (err instanceof Error) {
-        console.error(err.message);
-      }
-    }
-  };
 
-  const handleEditDriver = async (id: string) => {
-    const driverResponse = await findOneData(Stores.Drivers, id) as driverResponse;
-    const driverId = driverResponse?.id;
+
+  const handleEditDriver = (id: string) => {
+    const selectedDriver = driversState.find((driver) => driver.id === id)
+    const driverId = selectedDriver?.id;
     window.location.href = `/motoristas/${driverId}`
   }
 
-  const handleDeleteSelectedDrivers = async (selected: string[]) => {
-    if (!isDBReady) {
-      await handleInitDB();
-    }
-    try {
-      console.log(selected);
-      await deleteManyData(Stores.Drivers, selected);
-      // refetch drivers after deleting data
-      handleGetDrivers();
-    } catch (err: unknown) {
-      if (err instanceof Error) {
-        console.error(err.message);
-      }
-    }
+  const handleDeleteDriver = (id: string) => {
+      dispatch(deleteDriver(id))
   }
 
+  const handleDeleteSelectedDrivers = async (selected: string[]) => {}
 
   return (
     <Container>
       <h1>Motoristas</h1>
-      <HeaderContainer className="flex justify-between items-center">
+      <HeaderContainer>
         <Search placeholder="Pesquisar motoristas" />
         <SearchTool addBtnLink="/motoristas/criar" />
       </HeaderContainer>
@@ -139,3 +98,4 @@ export default function DriverPage({
     </Container>
   );
 }
+
