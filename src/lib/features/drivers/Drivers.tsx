@@ -48,9 +48,8 @@ export default function DriverPage({
   const query = searchParams?.query ?? '';
   
   const driversValues = Object.values(entities)
-  const testDrivers = Object.values(driversValues[0])
-  const drivers = testDrivers
-  console.log(testDrivers)
+  const drivers = driversValues
+  console.log(entities)
   const driversResponse = fetchFilteredDrivers(query, drivers);
 
   let searchedDriversIds: any = [];

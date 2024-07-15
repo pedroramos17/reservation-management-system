@@ -2,8 +2,8 @@ import {
 	createAsyncThunk,
 	createEntityAdapter,
 	createSlice,
+	PayloadAction,
 } from "@reduxjs/toolkit";
-import { normalize, schema } from "normalizr";
 import {
 	getStoreData,
 	addData,
@@ -28,12 +28,9 @@ type AtLeastOne<T extends Record<string, any>> = keyof T extends infer K
 
 type AtLeastOneDriverField = AtLeastOne<Driver>;
 
-const driverEntity = new schema.Entity<Driver>("drivers");
-
 const getDrivers = createAsyncThunk("driver/getAll", async () => {
 	const drivers = await getStoreData<Driver>(Stores.Drivers);
-	const normalized = normalize(drivers, driverEntity);
-	return normalized.entities;
+	return drivers;
 });
 
 const addDriver = createAsyncThunk("driver/add", async (data: Driver) => {
@@ -52,7 +49,7 @@ const updateDriver = createAsyncThunk(
 );
 
 const deleteDriver = createAsyncThunk("driver/delete", async (id: string) => {
-	return (await deleteData(Stores.Drivers, id)) as string;
+	return await deleteData(Stores.Drivers, id);
 });
 
 export const driversAdapter = createEntityAdapter<Driver>();
@@ -74,7 +71,7 @@ export const driverSlice = createSlice({
 			})
 			.addCase(getDrivers.fulfilled, (state, { payload }) => {
 				state.loading = "succeeded";
-				driversAdapter.upsertMany(state, payload.drivers!);
+				driversAdapter.upsertMany(state, payload);
 			})
 			.addCase(getDrivers.rejected, (state, action) => {
 				state.loading = "failed";
