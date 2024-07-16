@@ -1,14 +1,15 @@
 'use client';
 
 import { useState, useEffect } from 'react';
-import { TextField, Button, Box, IconButton } from '@mui/material';
+import { TextField, Button, Box } from '@mui/material';
 import styled from '@emotion/styled';
 import RemoveIcon from '@mui/icons-material/Remove';
 import ArrowBack from '@mui/icons-material/ArrowBack';
 import { Formik, Form, FieldArray, FormikHelpers, getIn } from 'formik'
 import * as Yup from 'yup'
-import { initDB, addData, getStoreData, Stores, Driver, findOneData, updateData } from '@/lib/utils/db';
+import { initDB, addData, Stores, Driver, findOneData, updateData } from '@/lib/utils/db';
 import dateParseBr from '@/lib/utils/date';
+import Anchor from '../Link';
 
 const Container = styled.div`
   display: flex;
@@ -200,9 +201,9 @@ export default function DriverForm(props: Readonly<UrlParams>) {
 
   return (
       <Box sx={{ mx: 4 }}>
-        <IconButton LinkComponent="a" href="/motoristas">
+        <Anchor href="/motoristas">
           <ArrowBack sx={{ fontSize: 36, color: '#000' }} />
-        </IconButton>
+        </Anchor>
         <h1>{id ? "Editar" : "Cadastrar"} Motorista</h1>
         {error && <p style={{ color: 'red' }}>{error}</p>}
         <Formik

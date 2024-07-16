@@ -3,6 +3,7 @@ import getComparator, { Order } from "@/lib/utils/sorting";
 import { DriverData } from "@/lib/interfaces/driver.interface";
 import { useMemo } from "react";
 import { Driver } from "@/lib/utils/db";
+import Anchor from "@/lib/common/components/Link";
 
 export default function TableBodyCustom(props: Readonly<{
     rows: Driver[];
@@ -86,8 +87,8 @@ export default function TableBodyCustom(props: Readonly<{
               <TableCell align="center">{row.rg}</TableCell>
               <TableCell align="center">{row.phone}</TableCell>
               <TableCell>
-                <Button variant="contained" color="warning" onClick={() => handleEditDriver(row.id)} >
-                  editar
+                <Button variant="contained" color="warning">
+                  <Anchor href={`/motoristas/${row.id}`}>editar</Anchor>
                 </Button>
               </TableCell>
               <TableCell>
