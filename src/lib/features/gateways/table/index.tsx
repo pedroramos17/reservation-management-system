@@ -13,10 +13,10 @@ import {
 } from '@mui/material';
 import React, { useState, useMemo, useEffect } from 'react';
 import moment from "moment";
-import { GatehouseData } from '../../../../interfaces/gateway.interface';
+import { GatehouseData } from '@/lib/interfaces/gateway.interface';
 import GatewayTableHead from './tableHead';
 import GatewayTableToolbar from './tableToolbar';
-import getComparator, { Order } from '../sorting';
+import getComparator, { Order } from '@/lib/utils/sorting';
 import { initDB, getStoreData, Gateway, Stores, Driver, Vehicle } from '@/lib/utils/db';
 
 export default function GatewayTable() {
@@ -121,7 +121,7 @@ export default function GatewayTable() {
       rows
         .toSorted(getComparator(order, orderBy))
         .slice(page * rowsPerPage, page * rowsPerPage + rowsPerPage),
-    [order, orderBy, page, rowsPerPage],
+    [order, orderBy, page, rowsPerPage, rows],
   );
 
   return (

@@ -9,7 +9,7 @@ import {
 } from '@mui/material';
 import { visuallyHidden } from '@mui/utils';
 import { GatehouseData } from '@/lib/interfaces/gateway.interface';
-import { Order } from '../sorting';
+import { Order } from '@/lib/utils/sorting';
 
 type Align = 'left' | 'center' | 'right' | 'justify' | 'inherit';
 
