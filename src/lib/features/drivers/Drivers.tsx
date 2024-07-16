@@ -73,7 +73,6 @@ export default function DriverPage(props: DriversProps) {
         query={query}
         drivers={drivers}
         handleDeleteSelectedDrivers={handleDeleteSelectedDrivers}
-        handleEditDriver={handleEditDriver}
         handleDeleteDriver={handleDeleteDriver}
         searchedDriversIds={searchedDriversIds}
       /> 

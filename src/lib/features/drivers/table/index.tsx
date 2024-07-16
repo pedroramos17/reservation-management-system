@@ -19,14 +19,12 @@ export default function DriverTable({
   query,
   drivers,
   handleDeleteSelectedDrivers,
-  handleEditDriver,
   handleDeleteDriver,
   searchedDriversIds,
 }: Readonly<{
   query: string;
   drivers: Driver[];
   handleDeleteSelectedDrivers: (selectedDrivers: string[]) => Promise<void>;
-  handleEditDriver: (id: string) => void;
   handleDeleteDriver: (id: string) => void;
   searchedDriversIds: string[];
 }>) {
@@ -95,7 +93,6 @@ export default function DriverTable({
               rowsPerPage={rowsPerPage}
               order={order}
               orderBy={orderBy}
-              handleEditDriver={handleEditDriver}
               handleDeleteDriver={handleDeleteDriver}
             />
             </Suspense>

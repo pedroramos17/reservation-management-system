@@ -13,11 +13,10 @@ export default function TableBodyCustom(props: Readonly<{
     rowsPerPage: number;
     order: Order;
     orderBy: keyof DriverData;
-    handleEditDriver: (id: string) => void;
     handleDeleteDriver: (id: string) => void;
 }>) {
         
-    const { rows, selected, setSelected, page, rowsPerPage, order, orderBy, handleEditDriver, handleDeleteDriver } = props
+    const { rows, selected, setSelected, page, rowsPerPage, order, orderBy, handleDeleteDriver } = props
 
     const handleClick = (_: React.MouseEvent<unknown>, id: string) => {
         const selectedIndex = selected.indexOf(id);
