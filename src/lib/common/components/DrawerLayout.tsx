@@ -1,6 +1,5 @@
 'use client';
 import * as React from 'react';
-import Link from 'next/link';
 import { styled, useTheme, Theme, CSSObject } from '@mui/material/styles';
 import Box from '@mui/material/Box';
 import MuiDrawer from '@mui/material/Drawer';
@@ -21,6 +20,7 @@ import ListItemText from '@mui/material/ListItemText';
 import DriverIcon from './DriverIcon';
 import ProfileIcon from './ProfileIcon';
 import GateUpIcon from './GateUpIcon';
+import Anchor from './Link';
 
 const drawerWidth = 240;
 
@@ -165,29 +165,29 @@ export default function DrawerLayout({ children }: any) {
                     }}
                   >
                     {index === 0 && (
-                      <Link href="/motoristas">
+                      <Anchor href="/motoristas">
                         <DriverIcon />
-                      </Link>
+                      </Anchor>
                     )}
                     {index === 1 && (
-                      <Link href="/portaria">
+                      <Anchor href="/portaria">
                         <GateUpIcon />
-                      </Link>
+                      </Anchor>
                     )}
                     {index === 2 && (
-                      <Link href="/perfil/editar">
+                      <Anchor href="/perfil/editar">
                         <ProfileIcon />
-                      </Link>
+                      </Anchor>
                     )}
                   </ListItemIcon>
 
                   <ListItemText sx={{ opacity: open ? 1 : 0 }}>
-                    <Link
-                      style={{ textDecoration: 'none', color: 'black' }}
+                    <Anchor
+                      sx={{ color: 'black' }}
                       href={link}
                     >
                       {text}
-                    </Link>
+                    </Anchor>
                   </ListItemText>
                 </ListItemButton>
               </ListItem>
