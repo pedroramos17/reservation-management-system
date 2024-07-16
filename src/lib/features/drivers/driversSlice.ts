@@ -2,7 +2,6 @@ import {
 	createAsyncThunk,
 	createEntityAdapter,
 	createSlice,
-	PayloadAction,
 } from "@reduxjs/toolkit";
 import {
 	getStoreData,
@@ -12,13 +11,6 @@ import {
 	deleteData,
 	Driver,
 } from "@/lib/utils/db";
-
-interface DriversState {
-	entities: {} | Driver[];
-	ids: string[];
-	loading: "idle" | "pending" | "succeeded" | "failed";
-	error: string | null;
-}
 
 type AtLeastOne<T extends Record<string, any>> = keyof T extends infer K
 	? K extends string
