@@ -9,7 +9,7 @@ import { Formik, Form, FieldArray, FormikHelpers, getIn } from 'formik'
 import * as Yup from 'yup'
 import { initDB, addData, Stores, Driver, findOneData, updateData } from '@/lib/utils/db';
 import dateParseBr from '@/lib/utils/date';
-import Anchor from '../Link';
+import Anchor from '@/lib/common/components/Link';
 
 const Container = styled.div`
   display: flex;
