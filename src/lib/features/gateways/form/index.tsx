@@ -16,12 +16,81 @@ import {
   Button,
 } from '@mui/material';
 import FlexSearch from 'flexsearch';
-import { GatehouseData } from '../../../../interfaces/gateway.interface';
+import { GatehouseData } from '@/lib/interfaces/gateway.interface';
 import getComparator, { Order } from '@/lib/utils/sorting';
 import GatewayTableToolbar from './tableToolbar';
 import GatewayTableHead from './tableHead';
 import { initDB, getStoreData, Driver, Gateway, Stores, Vehicle } from '@/lib/utils/db';
 import dateParseBr from '@/lib/utils/date';
+import { useAppDispatch, useAppSelector } from "@/lib/common/hooks/hooks";
+import { getGateways } from '@/lib/features/gateways/gatewaySlice';
+import { getDrivers } from "../../drivers/driversSlice";
+
+
+function mergeGatewaysWithDrivers(gateways: Gateway[], drivers: Driver[]) {
+  const driversWithGateway = drivers.filter((driver) => {
+    return gateways.some((gateway) => {
+      return gateway.driverId === driver.id
+    })
+  })
+  /**
+   * Merges gateways with drivers and returns an array of GatehouseData objects.
+   *
+   * @param {Gateway[]} gateways - An array of Gateway objects.
+   * @param {Driver[]} drivers - An array of Driver objects.
+   * @return {GatewayProps[]} An array of GatehouseData objects.
+   */
+  const entriesByDrivers: GatewayProps[] = gateways.map((gateway: Gateway): GatewayProps | undefined => {
+    
+    const driver: Driver | undefined = driversWithGateway.find((driver: Driver) => {
+      return driver.id === gateway.driverId
+    })
+    if (driver) {
+      const vehicle: Vehicle | undefined = driver.vehicles.find((vehicle: Vehicle) => {
+        return vehicle.id === gateway.vehicleId
+      }) ?? {
+        id: "",
+        brand: "",
+        model: "",
+        year: 0,
+        color: "",
+        plate: "",
+        createdAt: "",
+        updatedAt: "",
+      };
+      return {
+        id: gateway.id,
+        driverId: gateway.driverId,
+        name: driver.name,
+        car: `${vehicle.model} ${vehicle.brand} ${vehicle.color} ${vehicle.year}`,
+        plate: vehicle.plate,
+        date: (gateway.createdAt as unknown as Date).toLocaleDateString('pt-BR'),
+        hour: (gateway.createdAt as unknown as Date).toLocaleTimeString('pt-BR'),
+        type: gateway.parked ? "Entrada" : "Saída",
+      };
+    }
+  }).filter((entry): entry is GatewayProps => entry !== undefined);
+  const driversWithoutGateway = drivers.filter((driver) => {
+    return !gateways.some((gateway) => {
+      return gateway.driverId === driver.id
+    })
+  }).map((driver) => {
+    return {
+      id: driver.id,
+      driverId: driver.id,
+      name: driver.name,
+      car: `${driver.vehicles[0].brand} ${driver.vehicles[0].model} ${driver.vehicles[0].color} ${driver.vehicles[0].year}`,
+      plate: driver.vehicles[0].plate,
+      date: "Sem registro",
+      hour: "Sem registro",
+      type: "Sem Entrada/Saida",
+    }
+     })
+    
+    const gatewaysData = [...entriesByDrivers, ...driversWithoutGateway];
+    
+    return gatewaysData;
+}
 
 interface GatewayProps extends GatehouseData {
   driverId: string;
@@ -32,14 +101,13 @@ export default function GatewayTable({
 }: Readonly<{
   query: string;
 }>) {
+  const dispatch = useAppDispatch();
+  const { drivers, gateways } = useAppSelector((state) => state);
   const [order, setOrder] = useState<Order>('asc');
   const [orderBy, setOrderBy] = useState<keyof GatehouseData>('name');
   const [selected, setSelected] = useState<readonly string[]>([]);
   const [page, setPage] = useState(0);
   const [rowsPerPage, setRowsPerPage] = useState(5);
-  const [isDBReady, setIsDBReady] = useState<boolean>(false);
-  const [drivers, setDrivers] = useState<Driver[]|[]>([]);
-  const [gateways, setGateways] = useState<Gateway[]|[]>([]);
   const [gatewayFormData, setGatewayFormData] = useState<Gateway>({
     id: "",
     parked: false,
@@ -48,79 +116,18 @@ export default function GatewayTable({
     createdAt: "",
   })
 
+  const driversValues = Object.values(drivers.entities);
+  const gatewaysValues = Object.values(gateways.entities);
+
   const date = new Date("2018-09-01T16:01:36.386Z");
   const timeZone = "Europe/Berlin";
   const zonedDate = toZonedTime(date, timeZone);
 
   const pattern = "d.M.yyyy HH:mm:ss.SSS 'GMT' XXX (z)";
-const output = format(zonedDate, pattern, { timeZone: "Europe/Berlin" })
+  const output = format(zonedDate, pattern, { timeZone: "Europe/Berlin" })
   console.log(output)
 
-  function mergeGatewaysWithDrivers(gateways: Gateway[], drivers: Driver[]) {
-    const driversWithGateway = drivers.filter((driver) => {
-      return gateways.some((gateway) => {
-        return gateway.driverId === driver.id
-      })
-    })
-    /**
-     * Merges gateways with drivers and returns an array of GatehouseData objects.
-     *
-     * @param {Gateway[]} gateways - An array of Gateway objects.
-     * @param {Driver[]} drivers - An array of Driver objects.
-     * @return {GatewayProps[]} An array of GatehouseData objects.
-     */
-    const entriesByDrivers: GatewayProps[] = gateways.map((gateway: Gateway): GatewayProps | undefined => {
-      
-      const driver: Driver | undefined = driversWithGateway.find((driver: Driver) => {
-        return driver.id === gateway.driverId
-      })
-      if (driver) {
-        const vehicle: Vehicle | undefined = driver.vehicles.find((vehicle: Vehicle) => {
-          return vehicle.id === gateway.vehicleId
-        }) ?? {
-          id: "",
-          brand: "",
-          model: "",
-          year: 0,
-          color: "",
-          plate: "",
-          createdAt: "",
-          updatedAt: "",
-        };
-        return {
-          id: gateway.id,
-          driverId: gateway.driverId,
-          name: driver.name,
-          car: `${vehicle.model} ${vehicle.brand} ${vehicle.color} ${vehicle.year}`,
-          plate: vehicle.plate,
-          date: (gateway.createdAt as unknown as Date).toLocaleDateString('pt-BR'),
-          hour: (gateway.createdAt as unknown as Date).toLocaleTimeString('pt-BR'),
-          type: gateway.parked ? "Entrada" : "Saída",
-        };
-      }
-    }).filter((entry): entry is GatewayProps => entry !== undefined);
-    const driversWithoutGateway = drivers.filter((driver) => {
-      return !gateways.some((gateway) => {
-        return gateway.driverId === driver.id
-      })
-    }).map((driver) => {
-      return {
-        id: driver.id,
-        driverId: driver.id,
-        name: driver.name,
-        car: `${driver.vehicles[0].brand} ${driver.vehicles[0].model} ${driver.vehicles[0].color} ${driver.vehicles[0].year}`,
-        plate: driver.vehicles[0].plate,
-        date: "Sem registro",
-        hour: "Sem registro",
-        type: "Sem Entrada/Saida",
-      }
-       })
-      
-      const gatewaysData = [...entriesByDrivers, ...driversWithoutGateway];
-      
-      return gatewaysData;
-  }
-  const gatewaysData = mergeGatewaysWithDrivers(gateways, drivers);
+  const gatewaysData = mergeGatewaysWithDrivers(gatewaysValues, driversValues);
 
   function fetchFilteredDrivers(query: string, drivers: Driver[]|[]) {
     const DriverDocument = new FlexSearch.Document({
@@ -146,7 +153,7 @@ const output = format(zonedDate, pattern, { timeZone: "Europe/Berlin" })
     return results;
   }
   
-  const driversResponse = fetchFilteredDrivers(query, drivers);
+  const driversResponse = fetchFilteredDrivers(query, driversValues);
 
   let driversIds: any = [];
   driversResponse.forEach((response) => {
@@ -155,24 +162,10 @@ const output = format(zonedDate, pattern, { timeZone: "Europe/Berlin" })
 
   const rows = query ? gatewaysData.filter((gatewaysData) => driversIds.includes(gatewaysData.driverId)) : gatewaysData;
 
-  const handleInitDB = useCallback(async () => {
-    const status = await initDB();
-    setIsDBReady(!!status);
-  }, [setIsDBReady]);
-
-  const handleGetGateways = useCallback(async () => {
-    if (!isDBReady) {
-      await handleInitDB();
-    }
-    const gateways = await getStoreData<Gateway>(Stores.Gateways);
-    const drivers = await getStoreData<Driver>(Stores.Drivers);
-    setGateways(gateways);
-    setDrivers(drivers);
-  }, [handleInitDB, isDBReady]);	
-
   useEffect(() => {
-    handleGetGateways();
-  }, [handleGetGateways])
+    dispatch(getDrivers())
+    dispatch(getGateways())
+  }, [dispatch])
 
   const handleGatewayDriver = (driverId: string) => {
     /**
@@ -188,13 +181,13 @@ const output = format(zonedDate, pattern, { timeZone: "Europe/Berlin" })
      */
     let uuid = self.crypto.randomUUID();
 
-    const driverResponse = drivers.find((driver) => driver.id === driverId) as Driver;
+    const driverResponse = driversValues.find((driver) => driver.id === driverId) as Driver;
     
     if (driverResponse) {
       const driverId = driverResponse.id;
 
-      const driverWithGateway = gateways.filter((gateway) => gateway.driverId === driverId);
-      const lastDriverWithGateway = driverWithGateway.toReversed().at(-1);
+      const driverWithGateway = gatewaysValues.filter((gateway) => gateway.driverId === driverId);
+      const lastDriverWithGateway = driverWithGateway.at(-1);
       if (lastDriverWithGateway) {
         setGatewayFormData({
           id: uuid,
