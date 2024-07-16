@@ -52,10 +52,6 @@ export default function DriverPage(props: DriversProps) {
     dispatch(getDrivers())
   }, [dispatch])
 
-  const handleEditDriver = (id: string) => {
-    window.location.href = `/motoristas/${entities[id].id}`
-  }
-
   const handleDeleteDriver = (id: string) => {
       dispatch(deleteDriver(id))
   }
