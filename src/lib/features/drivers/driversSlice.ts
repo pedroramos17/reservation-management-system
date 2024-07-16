@@ -54,8 +54,10 @@ const deleteDriver = createAsyncThunk("driver/delete", async (id: string) => {
 
 export const driversAdapter = createEntityAdapter<Driver>();
 
+type Loading = "idle" | "pending" | "succeeded" | "failed";
+
 const initialState = driversAdapter.getInitialState({
-	loading: "idle",
+	loading: "idle" as Loading,
 	error: null as string | null,
 });
 
