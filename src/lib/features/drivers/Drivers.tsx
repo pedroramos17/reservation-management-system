@@ -1,11 +1,11 @@
 'use client';
 
+import { useEffect } from 'react';
+import FlexSearch from 'flexsearch';
 import DriverTable from '@/lib/features/drivers/table';
 import SearchTool from '@/lib/common/components/SearchTool';
 import { Container, HeaderContainer } from '@/lib/common/components/styles';
 import Search from '@/lib/common/components/Search';
-import { useEffect } from 'react';
-import FlexSearch from 'flexsearch';
 import { useAppDispatch, useAppSelector } from "@/lib/common/hooks/hooks"
 import { getDrivers, deleteDriver } from '@/lib/features/drivers/driversSlice';
 import { Driver } from '@/lib/utils/db';
