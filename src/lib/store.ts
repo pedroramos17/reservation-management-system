@@ -1,9 +1,11 @@
 import { configureStore } from "@reduxjs/toolkit";
 import driverReducer from "./features/drivers/driversSlice";
+import gatewayReducer from "./features/gateways/gatewaySlice";
 export const makeStore = () => {
 	return configureStore({
 		reducer: {
 			drivers: driverReducer,
+			gateways: gatewayReducer,
 		},
 	});
 };
