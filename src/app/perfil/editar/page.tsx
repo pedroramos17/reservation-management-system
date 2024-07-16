@@ -24,7 +24,7 @@ export default function Profile() {
   const [estimate, setEstimate] = useState([0, 0] as unknown as string[]);	
   let percent = 0 as unknown as string;
   let quota = 0 as unknown as string;
-  if(navigator) {
+  if(window.navigator) {
     navigator.storage.estimate().then((estimate) => {
       percent = (
         (estimate.usage as unknown as number) * (100 / (estimate.quota as unknown as number)) *
