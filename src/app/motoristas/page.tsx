@@ -2,6 +2,13 @@
 
 import DriverPage from "@/lib/features/drivers/Drivers";
 
-export default function Page() {
-  return <DriverPage />
+interface DriverPageProps {
+  readonly searchParams?: {
+    query?: string;
+  };
+}
+
+export default function Page({ searchParams }: DriverPageProps) {
+  const query = searchParams?.query ?? '';
+  return <DriverPage query={query} />
 }
