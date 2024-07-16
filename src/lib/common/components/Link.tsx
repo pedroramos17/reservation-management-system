@@ -1,9 +1,12 @@
+import { LinkBaseProps } from "@mui/material";
 import Link from "next/link";
 
-export default function Anchor(props: Readonly<{
-    href: string;
-    children: React.ReactNode;
-}>) {
+interface LinkProps extends LinkBaseProps {
+    readonly href: string;
+    readonly children: React.ReactNode;
+}
+
+export default function Anchor(props: LinkProps) {
     const { href, children } = props;
     return <Link href={href} style={{ textDecoration: 'none', color: 'inherit' }}>{children}</Link>;
 }
