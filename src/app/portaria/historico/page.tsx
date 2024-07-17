@@ -1,9 +1,10 @@
 'use client';
 
-import GatewayTable from '@/lib/features/gateways/table';
+import Anchor from '@/lib/common/components/Link';
+import Search from '@/lib/common/components/Search';
+import GatewayTable from '@/lib/features/gateways/history';
 import styled from '@emotion/styled';
 import { ArrowBack } from '@mui/icons-material';
-import { IconButton, TextField } from '@mui/material';
 
 const Container = styled.div`
   overflow: auto;
@@ -18,21 +19,24 @@ const Header = styled.header`
   padding: 24px 0;
 `;
 
-export default function Gateway() {
+export default function Page({
+  searchParams,
+}: Readonly<{
+  searchParams?: {
+    query?: string;
+  };
+}>) {
+  const query = searchParams?.query ?? '';
   return (
     <Container>
-        <IconButton LinkComponent="a" href="/portaria">
+        <Anchor href="/portaria">
           <ArrowBack sx={{ fontSize: 36, color: '#000' }} />
-        </IconButton>
+        </Anchor>
         <h1>Histórico de Portarias</h1>
       <Header>
-        <TextField
-          placeholder="Pesquisar"
-          variant="standard"
-          sx={{ width: '100%' }}
-        />
+        <Search placeholder="Pesquisar motoristas" />
       </Header>
-      <GatewayTable />
+      <GatewayTable query={query} />
     </Container>
   );
 }

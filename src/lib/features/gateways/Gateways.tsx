@@ -1,5 +1,5 @@
 import styled from "@emotion/styled";
-import GatewayTable from "@/lib/features/gateways/form";
+import GatewayTable from "@/lib/features/gateways/home";
 import Search from "@/lib/common/components/Search";
 
 const Container = styled.div`

@@ -1,70 +1,113 @@
 'use client';
 
+import { toZonedTime, format } from "date-fns-tz";
+import React, { useEffect, useMemo, useState } from 'react';
 import {
   Table,
+  TableBody,
   TableRow,
   TableCell,
-  Checkbox,
-  TableBody,
-  Box,
-  Paper,
   TableContainer,
   TablePagination,
+  Checkbox,
+  Paper,
+  Box,
+  Button,
 } from '@mui/material';
-import React, { useState, useMemo, useEffect } from 'react';
-import moment from "moment";
 import { GatehouseData } from '@/lib/interfaces/gateway.interface';
-import GatewayTableHead from './tableHead';
-import GatewayTableToolbar from './tableToolbar';
 import getComparator, { Order } from '@/lib/utils/sorting';
-import { initDB, getStoreData, Gateway, Stores, Driver, Vehicle } from '@/lib/utils/db';
+import GatewayTableToolbar from './tableToolbar';
+import GatewayTableHead from './tableHead';
+import { Driver, Gateway } from '@/lib/utils/db';
+import dateParseBr from '@/lib/utils/date';
+import { useAppDispatch, useAppSelector } from "@/lib/common/hooks/hooks";
+import { getGateways } from '@/lib/features/gateways/gatewaySlice';
+import { getDrivers } from "../../drivers/driversSlice";
+import mergeGatewaysWithDrivers from "../utils";
+import fetchFilteredDrivers from "@/lib/utils/search";
 
-export default function GatewayTable() {
+export default function GatewayTable({
+  query,
+}: Readonly<{
+  query: string;
+}>) {
+  const dispatch = useAppDispatch();
+  const { drivers, gateways } = useAppSelector((state) => state);
   const [order, setOrder] = useState<Order>('asc');
   const [orderBy, setOrderBy] = useState<keyof GatehouseData>('name');
   const [selected, setSelected] = useState<readonly string[]>([]);
   const [page, setPage] = useState(0);
   const [rowsPerPage, setRowsPerPage] = useState(5);
-  const [isDBReady, setIsDBReady] = useState<boolean>(false);
-  const [gatewaysData, setGatewaysData] = useState<GatehouseData[]|[]>([]);
+  const [gatewayFormData, setGatewayFormData] = useState<Gateway>({
+    id: "",
+    parked: false,
+    driverId: "",
+    vehicleId: "",
+    createdAt: "",
+  })
 
-  const rows = gatewaysData;
-  const handleInitDB = async () => {
-    const status = await initDB();
-    setIsDBReady(!!status);
-  };
-  
-  const handleGetGateways = async () => {
-    if (!isDBReady) {
-      await handleInitDB();
-    }
-    const gateways = await getStoreData<Gateway>(Stores.Gateways);
-    const drivers = await getStoreData<Driver>(Stores.Drivers);
-    const gatewaysData = gateways.map((gateway) => {
-      const date = moment(gateway.createdAt).format('DD/MM/YYYY')
-      const time = moment(gateway.createdAt).format('HH:mm:ss')
-      const driver = drivers.find((driver) => driver.id === gateway.driverId) as Driver;
-      const vehicle = driver.vehicles.find((vehicle) => vehicle.id === gateway.vehicleId) as Vehicle;
-      return {
-        id: gateway.id,
-        name: driver.name,
-        car: `${vehicle.model} ${vehicle.brand} ${vehicle.color} ${vehicle.year}`,
-        plate: vehicle.plate,
-        date: date,
-        hour: time,
-        type: gateway.parked ? 'Entrada' : 'Saida',
-      }
-    })
-    setGatewaysData(gatewaysData);
-  };
+  const driversValues = Object.values(drivers.entities);
+  const gatewaysValues = Object.values(gateways.entities);
+
+  const date = new Date("2018-09-01T16:01:36.386Z");
+  const timeZone = "Europe/Berlin";
+  const zonedDate = toZonedTime(date, timeZone);
+
+  const pattern = "d.M.yyyy HH:mm:ss.SSS 'GMT' XXX (z)";
+  const output = format(zonedDate, pattern, { timeZone: "Europe/Berlin" })
+  console.log(output)
+
+  const gatewaysData = mergeGatewaysWithDrivers(gatewaysValues, driversValues);
+
+  const driversResponse = fetchFilteredDrivers(query, driversValues);
+
+  let driversIds: any = [];
+  driversResponse.forEach((response) => {
+    driversIds = response['result'];
+  })
+
+  const rows = query ? gatewaysData.filter((gatewaysData) => driversIds.includes(gatewaysData.driverId)) : gatewaysData;
 
   useEffect(() => {
-    handleGetGateways();
-  });
+    dispatch(getDrivers())
+    dispatch(getGateways())
+  }, [dispatch])
 
+  const handleGatewayDriver = (driverId: string) => {
+    /**
+     * Pseudo code
+     * 
+     * Implement a logic like create a new entry and
+     *  new exit to save timestamp where is so important
+     *  to log and tie spent controller.
+     * 
+     * filter only drivers that are parked to register the exit
+     * and the driver that is not parked to register the entry
+     * 
+     */
+    let uuid = self.crypto.randomUUID();
 
+    const driverResponse = driversValues.find((driver) => driver.id === driverId) as Driver;
+    
+    if (driverResponse) {
+      const driverId = driverResponse.id;
+
+      const driverWithGateway = gatewaysValues.filter((gateway) => gateway.driverId === driverId);
+      const lastDriverWithGateway = driverWithGateway.at(-1);
+      if (lastDriverWithGateway) {
+        setGatewayFormData({
+          id: uuid,
+          parked: !lastDriverWithGateway.parked,
+          driverId: lastDriverWithGateway.driverId,
+          vehicleId: lastDriverWithGateway.vehicleId,
+          createdAt: dateParseBr(new Date()),
+        })
+        console.log(lastDriverWithGateway);
+        }
+      }
+    }
   const handleRequestSort = (
-    event: React.MouseEvent<unknown>,
+    _: React.MouseEvent<unknown>,
     property: keyof GatehouseData,
   ) => {
     const isAsc = orderBy === property && order === 'asc';
@@ -75,6 +118,7 @@ export default function GatewayTable() {
   const handleSelectAllClick = (event: React.ChangeEvent<HTMLInputElement>) => {
     if (event.target.checked) {
       const newSelected = rows.map((n) => n.id);
+      console.log(newSelected);
       setSelected(newSelected);
       return;
     }
@@ -100,7 +144,7 @@ export default function GatewayTable() {
     setSelected(newSelected);
   };
 
-  const handleChangePage = (event: unknown, newPage: number) => {
+  const handleChangePage = (_: unknown, newPage: number) => {
     setPage(newPage);
   };
 
@@ -121,7 +165,7 @@ export default function GatewayTable() {
       rows
         .toSorted(getComparator(order, orderBy))
         .slice(page * rowsPerPage, page * rowsPerPage + rowsPerPage),
-    [order, orderBy, page, rowsPerPage, rows],
+    [rows, order, orderBy, page, rowsPerPage],
   );
 
   return (
@@ -146,18 +190,16 @@ export default function GatewayTable() {
 
                 return (
                   <TableRow
-                    hover
-                    onClick={(event) => handleClick(event, row.id)}
                     role="checkbox"
                     aria-checked={isItemSelected}
                     tabIndex={-1}
                     key={row.id}
                     selected={isItemSelected}
-                    sx={{ cursor: 'pointer' }}
                   >
                     <TableCell padding="checkbox">
                       <Checkbox
                         color="primary"
+                        onClick={(event) => handleClick(event, row.id)}
                         checked={isItemSelected}
                         inputProps={{
                           'aria-labelledby': labelId,
@@ -177,6 +219,11 @@ export default function GatewayTable() {
                     <TableCell align="center">{row.date}</TableCell>
                     <TableCell align="center">{row.hour}</TableCell>
                     <TableCell align="center">{row.type}</TableCell>
+                    <TableCell>
+                      <Button variant="contained" color="primary" onClick={() => handleGatewayDriver(row.id)} >
+                        {row.type === 'Entrada' ? 'Registrar saída' : 'Registrar entrada'}
+                      </Button>
+                    </TableCell>
                   </TableRow>
                 );
               })}
