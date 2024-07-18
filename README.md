@@ -10,7 +10,7 @@ This is a demo of Barkin (parking management) working as offline-first app.
 - [X] ~~CRUD drivers~~
 - [X] ~~Array of vehicles~~
 - [X] ~~Full-text search in IndexedDB~~
-- [ ] Adding global state (RTK)
+- [X] Adding global state (RTK)
 - [ ] Gate entry/exit
 - [ ] Export report in PDF/Spreadsheet
 
