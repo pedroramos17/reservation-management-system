@@ -19,7 +19,7 @@ import getComparator, { Order } from '@/lib/utils/sorting';
 import { useAppDispatch, useAppSelector } from '@/lib/common/hooks/hooks';
 import { getDrivers } from '../../drivers/driversSlice';
 import { getGateways } from '../gatewaySlice';
-import mergeGatewaysWithDrivers from '../utils';
+import mergeGatewaysWithDrivers from '../../utils';
 import fetchFilteredDrivers from '@/lib/utils/search';
 
 export default function GatewayTable({
