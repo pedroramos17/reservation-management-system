@@ -1,6 +1,6 @@
 'use client';
 
-import DriverPage from "@/lib/features/drivers/Drivers";
+import CustomerPage from "@/lib/features/customer/Customers";
 
 interface DriverPageProps {
   readonly searchParams?: {
@@ -10,5 +10,5 @@ interface DriverPageProps {
 
 export default function Page({ searchParams }: DriverPageProps) {
   const query = searchParams?.query ?? '';
-  return <DriverPage query={query} />
+  return <CustomerPage query={query} />
 }

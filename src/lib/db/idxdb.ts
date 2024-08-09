@@ -1,76 +1,89 @@
+import { Stores } from "@/lib/core/entities";
+
 type DataType<T> = T | string | null;
 
 let request: IDBOpenDBRequest;
 let db: IDBDatabase;
 let version = 2;
 
-interface DataProps {
-	id: string;
-	updatedAt: string;
-	createdAt: string;
-}
-export interface Vehicle extends DataProps {
-	brand: string;
-	model: string;
-	year: number;
-	color: string;
-	plate: string;
-}
-
-export interface Driver extends DataProps {
-	name: string;
-	rg: string;
-	phone: string;
-	vehicles: Vehicle[];
-}
-
-export interface Gateway extends Omit<DataProps, "updatedAt"> {
-	parked: boolean;
-	driverId: string;
-	vehicleId: string;
-}
-
-export enum Stores {
-	Drivers = "drivers",
-	Gateways = "gateways",
-}
+const storesString = Object.values(Stores);
 const DB_NAME = "barkin";
-const initDB = (): Promise<boolean> => {
+
+interface ConfigureIdxDBProps {
+	dbName: string;
+	version: number;
+}
+
+interface UpgradeCallbackOptions {
+	db: IDBDatabase;
+	request: IDBOpenDBRequest;
+	upgradable: (schemas: IndexedDBStore[]) => boolean;
+}
+
+const openDB = (
+	props: ConfigureIdxDBProps
+): Promise<IDBOpenDBRequest | null> => {
+	const { dbName, version } = props;
 	return new Promise((resolve) => {
 		// open the connection
-		request = window.indexedDB.open(DB_NAME, version);
-		request.onblocked = (e) => {
+		if (!window) {
+			console.error("window is undefined");
+			resolve(null);
+		}
+		request = window.indexedDB.open(dbName, version);
+		resolve(request);
+	});
+};
+
+type UpgradeCallback = (options: UpgradeCallbackOptions) => void;
+const upgradeCallback = () => {};
+const configureIdxDB = (
+	props: ConfigureIdxDBProps
+): Promise<IDBDatabase | null> => {
+	return new Promise((resolve) => {
+		// open the connection
+		request.onblocked = (e: any) => {
 			console.log("request.onblocked", e);
-			(e.target as any).result.close();
+			e.target.result.close();
 		};
-		request.onupgradeneeded = (e) => {
-			db = (e.target as any).result;
+		request.onupgradeneeded = (e: any) => {
+			if (e.oldVersion === 0) {
+				upgradeCallback!(false);
+			} else {
+				upgradeCallback!(true);
+			}
+			db = e.target.result;
 
 			// if the data object store doesn't exist, create it
-			if (!db.objectStoreNames.contains(Stores.Drivers)) {
-				console.log("Creating drivers store");
-				db.createObjectStore(Stores.Drivers, { keyPath: "id" });
-			}
-			if (!db.objectStoreNames.contains(Stores.Gateways)) {
-				console.log("Creating gateways store");
-				db.createObjectStore(Stores.Gateways, { keyPath: "id" });
-			}
+			storesString.forEach((s) => {
+				if (!db.objectStoreNames.contains(s)) {
+					db.createObjectStore(s, { keyPath: "id" });
+				}
+			});
 			// no need to resolve here
 		};
 
-		request.onsuccess = (e) => {
-			db = (e.target as any).result;
-			version = db.version;
+		request.onsuccess = (e: any) => {
+			upgradeCallback!(true);
+			db = e.target.result;
 			console.log("request.onsuccess - initDB " + version);
-			resolve(true);
+			resolve(db);
 		};
 
-		request.onerror = (e) => {
-			(e.target as any).result.close();
-			resolve(false);
+		request.onerror = (e: any) => {
+			upgradeCallback!(false);
+			console.log("request.onerror - initDB", e);
+			e.target.result.close();
+			resolve(null);
 		};
 	});
 };
+
+const createEntity = (storeName: string) => {
+	return new Promise((resolve) => {});
+};
+
+const storeNameIterator: Iterator<string> = storesString.values();
 
 const addData = <T>(storeName: string, data: T): Promise<DataType<T>> => {
 	return new Promise((resolve) => {
@@ -91,7 +104,7 @@ const addData = <T>(storeName: string, data: T): Promise<DataType<T>> => {
 			if (error) {
 				resolve(error);
 			} else {
-				resolve("Unknown error");
+				resolve("Unknown error in addData");
 			}
 		};
 	});
@@ -116,7 +129,7 @@ const deleteData = (storeName: string, key: string): Promise<string> => {
 				if (error) {
 					resolve(error);
 				} else {
-					resolve("Unknown error");
+					resolve("Unknown error in deleteData");
 				}
 			};
 		};
@@ -229,7 +242,7 @@ const getStoreData = <T>(storeName: Stores): Promise<T[]> => {
 };
 
 export {
-	initDB,
+	configureIdxDB,
 	addData,
 	deleteData,
 	updateData,

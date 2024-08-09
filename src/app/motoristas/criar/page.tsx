@@ -1,4 +1,4 @@
-import DriverForm from '@/lib/features/drivers/form/DriverForm';
+import DriverForm from '@/lib/features/customer/form/DriverForm';
 
 export default function CreateDriver() {
   return (

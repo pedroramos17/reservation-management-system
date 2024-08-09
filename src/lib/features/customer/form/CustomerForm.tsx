@@ -7,7 +7,8 @@ import RemoveIcon from '@mui/icons-material/Remove';
 import ArrowBack from '@mui/icons-material/ArrowBack';
 import { Formik, Form, FieldArray, FormikHelpers, getIn } from 'formik'
 import * as Yup from 'yup'
-import { initDB, addData, Stores, Driver, findOneData, updateData } from '@/lib/utils/db';
+import { configureIdxDB, addData, findOneData, updateData } from '@/lib/db/idxdb';
+import { Customer, Vehicle, Stores } from '@/lib/core/entities';
 import dateParseBr from '@/lib/utils/date';
 import Anchor from '@/lib/common/components/Link';
 
@@ -59,27 +60,29 @@ interface UrlParams {
   id: string;
 };
 
-interface DriverFormValues {
+interface CustomerFormValues {
   name: string;
-  rg?: string;
+  email: string;
+  taxpayerRegistration: string;
   phone?: string;
   vehicles: {
     brand?: string;
     model?: string;
     year?: string;
     color?: string;
-    plate?: string;
+    licensePlate?: string;
   }[];
 }
 
 
-export default function DriverForm(props: Readonly<UrlParams>) {
+export default function CustomerForm(props: Readonly<UrlParams>) {
   const { id } = props;
   const [isDBReady, setIsDBReady] = useState<boolean>(false);
   const [error, setError] = useState<string | null>(null);
-  const [formDriverValue, setFormDriverValue] = useState<DriverFormValues>({
+  const [formCustomerValue, setFormCustomerValue] = useState<CustomerFormValues>({
     name: '',
-    rg: '',
+    email: '',
+    taxpayerRegistration: '',
     phone: '',
     vehicles: [
       {
@@ -87,22 +90,28 @@ export default function DriverForm(props: Readonly<UrlParams>) {
         model: '',
         year: '',
         color: '',
-        plate: '',
+        licensePlate: '',
       }
     ]
   })
 
   const timestamp = dateParseBr(new Date());
-  const handleInitDB = async () => {
-    const status = await initDB();
-    setIsDBReady(status);
-  };
+  //const handleInitDB = async () => {
+  //  const status = await initDB();
+  //  setIsDBReady(status);
+  //};
 
-  const handleAddDriver = async (values: DriverFormValues) => {
-    const { name, rg, phone, vehicles } = values;
-    const id = self.crypto.randomUUID();
+  const handleAddCustomer = async (values: CustomerFormValues) => {
+    const { name, email, taxpayerRegistration, phone, vehicles } = values;
+    const customerId = self.crypto.randomUUID();
+    const vehicleId = self.crypto.randomUUID();
     try {
-      await addData(Stores.Drivers, { id, name, rg, phone, vehicles, createdAt: timestamp, updateAt: timestamp });
+      await addData(Stores.Customers, { customerId, name, email, taxpayerRegistration, phone, createdAt: timestamp, updateAt: null });
+      if (vehicles.length > 0) {
+        for(const vehicle of vehicles) {
+          await addData(Stores.Vehicles, { vehicleId, ...vehicle, customerId, createdAt: timestamp, updateAt: null });
+        }
+      }
     } catch (err: unknown) {
       if (err instanceof Error) {
         console.error(err.message);
@@ -113,10 +122,10 @@ export default function DriverForm(props: Readonly<UrlParams>) {
     }
   };
 
-  const handleEditDriver = async (values: DriverFormValues) => {
-    const { name, rg, phone, vehicles } = values;
+  const handleEditCustomer = async (values: CustomerFormValues) => {
+    const { name, email, taxpayerRegistration, phone, vehicles } = values;
     try {
-      await updateData(Stores.Drivers, id, { name, rg, phone, vehicles, updateAt: timestamp });
+      await updateData(Stores.Customers, id, { name, email, taxpayerRegistration, phone, vehicles, updateAt: timestamp });
     } catch (err: unknown) {
       if (err instanceof Error) {
         console.error(err.message);
@@ -130,7 +139,7 @@ export default function DriverForm(props: Readonly<UrlParams>) {
   const handleFindOne = async () => {
     try {
       if (id) {
-        return await findOneData<Driver>(Stores.Drivers, id);
+        return await findOneData<Customer>(Stores.Customers, id);
       }
     } catch (err: unknown) {
       if (err instanceof Error) {
@@ -143,12 +152,12 @@ export default function DriverForm(props: Readonly<UrlParams>) {
   };
 
   const handleFillForm = async () => {
-    if (!isDBReady) {
-      await handleInitDB();
-    }
+    // if (!isDBReady) {
+    //   await handleInitDB();
+    // }
     if (id) {
       const drivers = await handleFindOne()
-      setFormDriverValue(drivers as unknown as DriverFormValues);
+      setFormCustomerValue(drivers as unknown as CustomerFormValues);
     }
   }
     
@@ -157,7 +166,8 @@ export default function DriverForm(props: Readonly<UrlParams>) {
     })
   const initialValues = {
       name: '',
-      rg: '',
+      email: '',
+      taxpayerRegistration: '',
       phone: '',
       vehicles: [
         {
@@ -165,14 +175,15 @@ export default function DriverForm(props: Readonly<UrlParams>) {
           model: '',
           year: '',
           color: '',
-          plate: '',
+          licensePlate: '',
         }
       ]
   }
 
   const validationSchema = Yup.object().shape({
    name: Yup.string().min(2, 'Nome muito curto').trim().required('Nome é obrigatório'),
-    rg: Yup.string().trim().nullable(),
+   email: Yup.string().trim().email('Email inválido').nullable(),
+   taxpayerRegistration: Yup.number().max(99999999999, 'CPF inválido').required('CPF é obrigatório'),
     phone: Yup.string().trim().nullable(),
     vehicles: Yup.array().of(
       Yup.object().shape({
@@ -180,20 +191,20 @@ export default function DriverForm(props: Readonly<UrlParams>) {
         model: Yup.string().trim().nullable(),
         year: Yup.string().trim().nullable(),
         color: Yup.string().trim().nullable(),
-        plate: Yup.string().trim().required('Placa é obrigatório'),
+        licensePlate: Yup.string().trim().required('Placa é obrigatório'),
       }).nullable(),
     )
   })
 
-  const handleSubmit = async (values: DriverFormValues, { setSubmitting }: FormikHelpers<DriverFormValues>) => {
-    await handleInitDB();
-    if (!isDBReady) {
-      await handleInitDB();
-    }
+  const handleSubmit = async (values: CustomerFormValues, { setSubmitting }: FormikHelpers<CustomerFormValues>) => {
+    // await handleInitDB();
+    // if (!isDBReady) {
+    //   await handleInitDB();
+    // }
     if (id) {
-      handleEditDriver(values);
+      handleEditCustomer(values);
     } else {
-      handleAddDriver(values);
+      handleAddCustomer(values);
     }
     setSubmitting(false);
     window.location.replace('/motoristas');
@@ -207,7 +218,7 @@ export default function DriverForm(props: Readonly<UrlParams>) {
         <h1>{id ? "Editar" : "Cadastrar"} Motorista</h1>
         {error && <p style={{ color: 'red' }}>{error}</p>}
         <Formik
-          initialValues={formDriverValue || initialValues}
+          initialValues={formCustomerValue || initialValues}
           validationSchema={validationSchema}
           validateOnChange
           validateOnBlur
@@ -217,8 +228,8 @@ export default function DriverForm(props: Readonly<UrlParams>) {
           {({ values, touched, errors, handleChange, handleBlur, isValid } ) => {
             const touchedName = getIn(touched, 'name');
             const errorName = getIn(errors, 'name');
-            const touchedRg = getIn(touched, 'rg');
-            const errorRg = getIn(errors, 'rg');
+            const touchedTaxpayerRegistration = getIn(touched, 'taxpayerRegistration');
+            const errorTaxpayerRegistration = getIn(errors, 'taxpayerRegistration');
             const touchedPhone = getIn(touched, 'phone');
             const errorPhone = getIn(errors, 'phone');
             return (
@@ -238,12 +249,12 @@ export default function DriverForm(props: Readonly<UrlParams>) {
                 />
                 <FlexContainer>
                   <TextField
-                    label="RG"
+                    label="CPF"
                     variant="standard"
-                    name="rg"
-                    value={values.rg}
-                    helperText={ touchedRg && errorRg ? errorRg : ""}
-                    error={Boolean(touchedRg && errorRg)}
+                    name="taxpayerRegistration"
+                    value={values.taxpayerRegistration}
+                    helperText={ touchedTaxpayerRegistration && errorTaxpayerRegistration ? errorTaxpayerRegistration : ""}
+                    error={Boolean(touchedTaxpayerRegistration && errorTaxpayerRegistration)}
                     onChange={handleChange}
                     onBlur={handleBlur}
                   />
@@ -340,7 +351,7 @@ export default function DriverForm(props: Readonly<UrlParams>) {
                               label="Placa"
                               variant="standard"
                               name={plate}
-                              value={values.vehicles[index]?.plate}
+                              value={values.vehicles[index]?.licensePlate}
                               helperText={ touchedPlate && errorPlate ? errorPlate : ""}
                               error={Boolean(touchedPlate && errorPlate)}
                               onChange={handleChange}
@@ -371,3 +382,7 @@ export default function DriverForm(props: Readonly<UrlParams>) {
       </Box>
   );
 }
+function initDB() {
+  throw new Error('Function not implemented.');
+}
+

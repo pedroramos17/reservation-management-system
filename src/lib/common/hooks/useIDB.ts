@@ -1,27 +1,7 @@
-import { useEffect, useReducer, useState } from "react";
-
-enum ActionTypes {
-	GET,
-	ADD,
-	UPDATE,
-	DELETE,
-}
-
 enum Stores {
 	Drivers = "drivers",
 	Gateways = "gateways",
 	Vehicles = "vehicles",
-}
-
-interface IDB<T> {
-	action: ActionTypes;
-	store: Stores;
-	data: T | null;
-}
-
-interface IDBState<T> {
-	data: T | null;
-	error: string | null;
 }
 
 export interface IndexedDBColumn {
@@ -75,12 +55,6 @@ export interface IndexedDBConfig {
 
 const indexedDB: IDBFactory = window.indexedDB;
 
-function useSchema(schemas: IndexedDBStore[]) {
-	const [stores, setStores] = useState<IndexedDBStore[]>([]);
-	setStores(schemas);
-	return stores;
-}
-
 function con(config?: IndexedDBConfig): Promise<IDBDatabase> {
 	const { dbName, version, upgradeCallback } = config || {};
 	if (!dbName || !version) {
@@ -110,8 +84,7 @@ function con(config?: IndexedDBConfig): Promise<IDBDatabase> {
 	});
 }
 
-const useUpgradeCallback = (_: Event, db: IDBDatabase) => {
-	const stores = useSchema(schemas);
+const upgradeCallback = (db: IDBDatabase, stores: IndexedDBStore[]) => {
 	stores.forEach((s) => {
 		if (!db.objectStoreNames.contains(s.name)) {
 			const store = db.createObjectStore(s.name, s.id);
@@ -120,62 +93,4 @@ const useUpgradeCallback = (_: Event, db: IDBDatabase) => {
 			});
 		}
 	});
-};
-const idbReducer = <T>(
-	state: IDBState<T>,
-	action: { type: ActionTypes; payload?: T }
-): IDBState<T> => {
-	switch (action.type) {
-		case ActionTypes.GET:
-			// Implement your GET logic here
-			return { ...state };
-		case ActionTypes.ADD:
-			// Implement your ADD logic here
-			return { ...state };
-		case ActionTypes.UPDATE:
-			// Implement your UPDATE logic here
-			return { ...state };
-		case ActionTypes.DELETE:
-			// Implement your DELETE logic here
-			return { ...state };
-		default:
-			return state;
-	}
-};
-
-export const useIDB = <T>(props: IDB<T>) => {
-	const { action, store, data } = props;
-
-	const initialState: IDBState<T> = {
-		data: null,
-		error: null,
-	};
-
-	const [state, dispatch] = useReducer(idbReducer, initialState);
-
-	useEffect(() => {
-		// Initialize the database and perform other setup
-		// ...
-
-		// Example: Dispatch an action to get data
-		if (action === ActionTypes.GET) {
-			dispatch({ type: ActionTypes.GET });
-			// Implement your GET logic here
-		}
-
-		// Other actions (ADD, UPDATE, DELETE) can be handled similarly
-
-		// Cleanup (e.g., close database connection) when component unmounts
-		return () => {
-			// Cleanup logic
-		};
-	}, [action]);
-
-	// Return relevant data and methods
-	return {
-		data: state.data,
-		error: state.error,
-		// Add other methods for interacting with IndexedDB
-		// ...
-	};
 };

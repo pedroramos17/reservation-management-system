@@ -9,36 +9,36 @@ import {
   Box,
 } from '@mui/material';
 import { Order } from '@/lib/utils/sorting';
-import DriverTableToolbar from './tableToolbar';
-import DriverTableHead from './tableHead';
-import { DriverData } from '@/lib/interfaces/driver.interface';
-import { Driver } from '@/lib/utils/db';
+import CustomerTableToolbar from './tableToolbar';
+import CustomerTableHead from './tableHead';
+import { Customer } from '@/lib/core/entities';
+import type { CustomerData } from '@/lib/core/types';
 import TableBodyCustom from './tableBody';
 
-export default function DriverTable({
+export default function CustomerTable({
   query,
-  drivers,
-  handleDeleteSelectedDrivers,
-  handleDeleteDriver,
-  searchedDriversIds,
+  customers,
+  handleDeleteSelectedCustomers,
+  handleDeleteCustomer,
+  searchedCustomersIds,
 }: Readonly<{
   query: string;
-  drivers: Driver[];
-  handleDeleteSelectedDrivers: (selectedDrivers: string[]) => Promise<void>;
-  handleDeleteDriver: (id: string) => void;
-  searchedDriversIds: string[];
+  customers: Customer[];
+  handleDeleteSelectedCustomers: (selectedCustomers: string[]) => Promise<void>;
+  handleDeleteCustomer: (id: string) => void;
+  searchedCustomersIds: string[];
 }>) {
   const [order, setOrder] = useState<Order>('asc');
-  const [orderBy, setOrderBy] = useState<keyof DriverData>('name');
+  const [orderBy, setOrderBy] = useState<keyof CustomerData>('name');
   const [selected, setSelected] = useState<string[]>([]);
   const [page, setPage] = useState(0);
   const [rowsPerPage, setRowsPerPage] = useState(5);
 
-  const rows = query ? drivers.filter((driver) => searchedDriversIds.includes(driver.id)) : drivers;
+  const rows = query ? customers.filter((customer) => searchedCustomersIds.includes(customer.id)) : customers;
 
   const handleRequestSort = (
     _: React.MouseEvent<unknown>,
-    property: keyof DriverData,
+    property: keyof CustomerData,
   ) => {
     const isAsc = orderBy === property && order === 'asc';
     setOrder(isAsc ? 'desc' : 'asc');
@@ -72,11 +72,11 @@ export default function DriverTable({
   return (
     <Box sx={{ width: '100%' }}>
       <Paper sx={{ width: '100%', mb: 2 }}>
-        <DriverTableToolbar numSelected={selected.length} onDeleteSelectedDrivers={() => 	handleDeleteSelectedDrivers(selected)} />
+        <CustomerTableToolbar numSelected={selected.length} onDeleteSelectedCustomers={() => 	handleDeleteSelectedCustomers(selected)} />
         <TableContainer>
           <Table sx={{ minWidth: 750 }} aria-labelledby="tableTitle">
             <caption>Tabela de cadastro de entradas e saídas</caption>
-            <DriverTableHead
+            <CustomerTableHead
               numSelected={selected.length}
               order={order}
               orderBy={orderBy}
@@ -93,7 +93,7 @@ export default function DriverTable({
               rowsPerPage={rowsPerPage}
               order={order}
               orderBy={orderBy}
-              handleDeleteDriver={handleDeleteDriver}
+              handleDeleteCustomer={handleDeleteCustomer}
             />
             </Suspense>
           </Table>

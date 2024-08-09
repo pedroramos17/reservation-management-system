@@ -1,22 +1,23 @@
 import { Button, Checkbox, TableBody, TableCell, TableRow } from "@mui/material";
 import getComparator, { Order } from "@/lib/utils/sorting";
-import { DriverData } from "@/lib/interfaces/driver.interface";
+import { CustomerData } from "@/lib/core/types";
 import { useMemo } from "react";
-import { Driver } from "@/lib/utils/db";
+import { Customer } from "@/lib/core/entities";
 import Anchor from "@/lib/common/components/Link";
 
-export default function TableBodyCustom(props: Readonly<{
-    rows: Driver[];
-    selected: string[];
-    setSelected: React.Dispatch<React.SetStateAction<string[]>>;
-    page: number;
-    rowsPerPage: number;
-    order: Order;
-    orderBy: keyof DriverData;
-    handleDeleteDriver: (id: string) => void;
-}>) {
+interface TableBodyProps {
+  rows: Customer[];
+  selected: string[];
+  setSelected: React.Dispatch<React.SetStateAction<string[]>>;
+  page: number;
+  rowsPerPage: number;
+  order: Order;
+  orderBy: keyof CustomerData;
+  handleDeleteCustomer: (id: string) => void;
+}
+export default function TableBodyCustom(props: Readonly<TableBodyProps>) {
         
-    const { rows, selected, setSelected, page, rowsPerPage, order, orderBy, handleDeleteDriver } = props
+    const { rows, selected, setSelected, page, rowsPerPage, order, orderBy, handleDeleteCustomer } = props
 
     const handleClick = (_: React.MouseEvent<unknown>, id: string) => {
         const selectedIndex = selected.indexOf(id);
@@ -55,7 +56,7 @@ export default function TableBodyCustom(props: Readonly<{
         <TableBody>
         {visibleRows.map((row, index) => {
           const isItemSelected = isSelected(row.id);
-          const labelId = `Driver-table-checkbox-${index}`;
+          const labelId = `Customer-table-checkbox-${index}`;
 
           return (
             <TableRow
@@ -83,7 +84,7 @@ export default function TableBodyCustom(props: Readonly<{
               >
                 {row.name}
               </TableCell>
-              <TableCell align="center">{row.rg}</TableCell>
+              <TableCell align="center">{row.taxpayerRegistration}</TableCell>
               <TableCell align="center">{row.phone}</TableCell>
               <TableCell>
                 <Button variant="contained" color="warning">
@@ -91,7 +92,7 @@ export default function TableBodyCustom(props: Readonly<{
                 </Button>
               </TableCell>
               <TableCell>
-                <Button variant="contained" color="error" onClick={() => handleDeleteDriver(row.id)} >
+                <Button variant="contained" color="error" onClick={() => handleDeleteCustomer(row.id)} >
                   Excluir
                 </Button>
               </TableCell>

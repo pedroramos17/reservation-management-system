@@ -1,5 +1,5 @@
 import { GatehouseData } from "@/lib/interfaces/gateway.interface";
-import { Driver, Gateway, Vehicle } from "@/lib/utils/db";
+import { Driver, Gateway, Vehicle } from "@/lib/core/entities";
 
 export type AtLeastOne<T extends Record<string, any>> = keyof T extends infer K
 	? K extends string

@@ -2,15 +2,15 @@ import { Toolbar, Tooltip, IconButton, Typography } from '@mui/material';
 import { alpha } from '@mui/material/styles';
 import DeleteIcon from '@mui/icons-material/Delete';
 
-interface DriverTableToolBarProps {
+interface CustomerTableToolBarProps {
   numSelected: number;
-  onDeleteSelectedDrivers: (selected: string[]) => void;
+  onDeleteSelectedCustomers: (selected: string[]) => void;
 }
 
-export default function DriverTableToolbar(
-  props: Readonly<DriverTableToolBarProps>,
+export default function CustomerTableToolbar(
+  props: Readonly<CustomerTableToolBarProps>,
 ) {
-  const { numSelected, onDeleteSelectedDrivers } = props;
+  const { numSelected, onDeleteSelectedCustomers } = props;
 
   return (
     <Toolbar
@@ -46,7 +46,7 @@ export default function DriverTableToolbar(
         </Typography>
       )}
       {numSelected > 0 ? (
-      <Tooltip title="Excluir" onClick={async () => onDeleteSelectedDrivers([numSelected.toString()])}>
+      <Tooltip title="Excluir" onClick={async () => onDeleteSelectedCustomers([numSelected.toString()])}>
           <IconButton>
             <DeleteIcon />
           </IconButton>

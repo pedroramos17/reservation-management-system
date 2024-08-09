@@ -10,29 +10,30 @@ import {
   Box,
 } from '@mui/material';
 import { visuallyHidden } from '@mui/utils';
-import { DriverData } from '@/lib/interfaces/driver.interface';
 import { Order } from '@/lib/utils/sorting';
+import { CustomerData } from '@/lib/core/types';
+
 
 type Align = 'left' | 'center' | 'right' | 'justify' | 'inherit';
 
 interface HeadCell {
   disablePadding: boolean;
-  id: keyof DriverData;
+  id: keyof CustomerData;
   label: string;
   align: Align;
 }
 
 const headCells: readonly HeadCell[] = [
   { id: 'name', align: 'left', disablePadding: true, label: 'Nome' },
-  { id: 'rg', align: 'center', disablePadding: false, label: 'RG' },
+  { id: 'taxpayerRegistration', align: 'center', disablePadding: false, label: 'CPF' },
   { id: 'phone', align: 'center', disablePadding: false, label: 'Telefone' },
 ];
 
-interface GatewayTableProps {
+interface CustomerTableProps {
   numSelected: number;
   onRequestSort: (
     event: React.MouseEvent<unknown>,
-    property: keyof DriverData,
+    property: keyof CustomerData,
   ) => void;
   onSelectAllClick: (event: React.ChangeEvent<HTMLInputElement>) => void;
   order: Order;
@@ -40,7 +41,7 @@ interface GatewayTableProps {
   rowCount: number;
 }
 
-export default function GatewayTableHead(props: Readonly<GatewayTableProps>) {
+export default function CustomerTableHead(props: Readonly<CustomerTableProps>) {
   const {
     onSelectAllClick,
     order,
@@ -50,7 +51,7 @@ export default function GatewayTableHead(props: Readonly<GatewayTableProps>) {
     onRequestSort,
   } = props;
   const createSortHandler =
-    (property: keyof DriverData) => (event: React.MouseEvent<unknown>) => {
+    (property: keyof CustomerData) => (event: React.MouseEvent<unknown>) => {
       onRequestSort(event, property);
     };
 
@@ -76,7 +77,7 @@ export default function GatewayTableHead(props: Readonly<GatewayTableProps>) {
             sortDirection={orderBy === headCell.id ? order : false}
           >
             <TableSortLabel
-              active={orderBy === headCell.id}
+              active={orderBy === 'name'}
               direction={orderBy === headCell.id ? order : 'asc'}
               onClick={createSortHandler(headCell.id)}
             >
