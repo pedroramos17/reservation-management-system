@@ -16,6 +16,41 @@ interface ParkingLotDB extends DBSchema {
 		};
 		indexes: { "by-vehicle": string; "by-slot": number; "by-exit": string };
 	};
+	customers: {
+		key: string;
+		value: {
+			id: string;
+			name: string;
+			email: string;
+			taxpayerRegistration: number;
+			phone: number;
+			address: string;
+		};
+	};
+	users: {
+		key: string;
+		value: {
+			id: string;
+			name: string;
+			email: string;
+			address: string;
+			operatingHour: string;
+		};
+	};
+	vehicles: {
+		key: string;
+		value: {
+			id: string;
+			brand: string;
+			model: string;
+			year: number;
+			color: string;
+			variant: string;
+			licensePlate: string;
+			driverId: string;
+		};
+		indexes: { "by-driver": string };
+	};
 }
 
 const dbPromise = openDB<ParkingLotDB>("parSlotMapDB", 1, {
