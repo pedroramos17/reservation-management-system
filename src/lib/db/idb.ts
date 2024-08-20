@@ -22,19 +22,8 @@ interface ParkingLotDB extends DBSchema {
 			id: string;
 			name: string;
 			email: string;
-			taxpayerRegistration: number;
 			phone: number;
-			address: string;
-		};
-	};
-	users: {
-		key: string;
-		value: {
-			id: string;
-			name: string;
-			email: string;
-			address: string;
-			operatingHour: string;
+			taxpayerRegistration: number;
 		};
 	};
 	vehicles: {
@@ -51,6 +40,16 @@ interface ParkingLotDB extends DBSchema {
 		};
 		indexes: { "by-driver": string };
 	};
+	users: {
+		key: string;
+		value: {
+			id: string;
+			name: string;
+			email: string;
+			address: string;
+			operatingHour: string;
+		};
+	};
 }
 
 const dbPromise = openDB<ParkingLotDB>("parSlotMapDB", 1, {
@@ -64,6 +63,8 @@ const dbPromise = openDB<ParkingLotDB>("parSlotMapDB", 1, {
 		historyStore.createIndex("by-exit", "exitDate");
 	},
 });
+
+export default dbPromise;
 
 export async function getSlots() {
 	const db = await dbPromise;
@@ -105,3 +106,12 @@ export async function updateReservation(reservation: Reservation) {
 }
 
 export type Reservation = ParkingLotDB["reservations"]["value"];
+export type Customer = ParkingLotDB["customers"]["value"];
+
+export enum Stores {
+	ParkingLots = "parkingLots",
+	Slots = "slots",
+	Customers = "customers",
+	Vehicles = "vehicles",
+	Reserves = "reserves",
+}
