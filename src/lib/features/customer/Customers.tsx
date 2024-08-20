@@ -8,7 +8,7 @@ import { Container, HeaderContainer } from '@/lib/common/components/styles';
 import Search from '@/lib/common/components/Search';
 import { useAppDispatch, useAppSelector } from "@/lib/common/hooks/hooks"
 import { getCustomers, deleteCustomer } from '@/lib/features/customer/customersSlice';
-import { Customer } from '@/lib/core/entities';
+import type { Customer } from '@/lib/db/idb';
     
 function fetchFilteredCustomers(query: string, customers: Customer[]|[]) {
   const CustomerDocument = new FlexSearch.Document({

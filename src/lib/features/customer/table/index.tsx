@@ -11,7 +11,7 @@ import {
 import { Order } from '@/lib/utils/sorting';
 import CustomerTableToolbar from './tableToolbar';
 import CustomerTableHead from './tableHead';
-import { Customer } from '@/lib/core/entities';
+import type { Customer } from '@/lib/db/idb';
 import type { CustomerData } from '@/lib/core/types';
 import TableBodyCustom from './tableBody';
 

@@ -2,7 +2,7 @@ import { Button, Checkbox, TableBody, TableCell, TableRow } from "@mui/material"
 import getComparator, { Order } from "@/lib/utils/sorting";
 import { CustomerData } from "@/lib/core/types";
 import { useMemo } from "react";
-import { Customer } from "@/lib/core/entities";
+import type { Customer } from "@/lib/db/idb";
 import Anchor from "@/lib/common/components/Link";
 
 interface TableBodyProps {
