@@ -3,36 +3,38 @@ import {
 	createEntityAdapter,
 	createSlice,
 } from "@reduxjs/toolkit";
-import { getStoreData, addData, updateData, deleteData } from "@/lib/db/idxdb";
-import { Stores, Customer } from "@/lib/core/entities";
+import {
+	add,
+	update,
+	getAll,
+	remove,
+} from "@/lib/repositories/customerRepository";
+import type { Customer } from "@/lib/db/idb";
 import { AtLeastOne } from "../utils";
 
 type AtLeastOneCustomerField = AtLeastOne<Customer>;
 
 const getCustomers = createAsyncThunk("customer/getAll", async () => {
-	const customers = await getStoreData<Customer>(Stores.Customers);
+	const customers = await getAll();
 	return customers;
 });
 
 const addCustomer = createAsyncThunk("customer/add", async (data: Customer) => {
-	return (await addData<Customer>(Stores.Customers, data)) as Customer;
+	return await add(data);
 });
 
 const updateCustomer = createAsyncThunk(
 	"customer/update",
 	async (updatedData: AtLeastOneCustomerField & { id: string }) => {
-		return (await updateData(
-			Stores.Customers,
-			updatedData.id,
-			updatedData
-		)) as AtLeastOneCustomerField;
+		return (await update(updatedData)) as AtLeastOneCustomerField;
 	}
 );
 
 const deleteCustomer = createAsyncThunk(
 	"customer/delete",
 	async (id: string) => {
-		return await deleteData(Stores.Customers, id);
+		await remove(id);
+		return id;
 	}
 );
 
@@ -97,7 +99,7 @@ export const customerSlice = createSlice({
 				state.loading = "pending";
 				state.error = null;
 			})
-			.addCase(deleteCustomer.fulfilled, (state, { payload }) => {
+			.addCase(deleteCustomer.fulfilled, (state, {payload}) => {
 				state.loading = "succeeded";
 				customersAdapter.removeOne(state, payload);
 			})
