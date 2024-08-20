@@ -1,13 +1,14 @@
 // src/features/parkingSlot/parkingSlotSlice.ts
 import { createSlice, createAsyncThunk } from "@reduxjs/toolkit";
-import * as db from "@/lib/db/idb";
-interface Reservation {
-	id: string;
-	vehicleId: string;
-	slotIndex: number;
-	entryDate: string;
-	exitDate: string | null;
-}
+import type { Reservation } from "@/lib/db/idb";
+import {
+	addReservation,
+	getOpenReservations,
+	getReservations,
+	getSlots,
+	updateReservation,
+	setSlots,
+} from "@/lib/repositories/parkingSlotRepository";
 interface OpenReservations {
 	slotIndex: number;
 	vehicleId: string | null;
@@ -32,9 +33,9 @@ export const initializeFromDB = createAsyncThunk(
 	"parkingSlot/initializeFromDB",
 	async () => {
 		const [slots, openReservations, reservations] = await Promise.all([
-			db.getSlots(),
-			db.getOpenReservations(),
-			db.getReservations(),
+			getSlots(),
+			getOpenReservations(),
+			getReservations(),
 		]);
 		return {
 			slots,
@@ -47,12 +48,12 @@ export const initializeFromDB = createAsyncThunk(
 export const initializeSlotsAsync = createAsyncThunk(
 	"parkingSlot/initializeSlots",
 	async (slotCount: number) => {
-		let slots = await db.getSlots();
+		let slots = await getSlots();
 		if (slots.length !== slotCount) {
 			slots = new Array(slotCount).fill(false);
 		}
-		const openReservations = await db.getOpenReservations();
-		await db.setSlots(slots);
+		const openReservations = await getOpenReservations();
+		await setSlots(slots);
 		return { slots, openReservations };
 	}
 );
@@ -78,12 +79,12 @@ export const reserveSlotAsync = createAsyncThunk(
 				id: Date.now().toString(),
 				vehicleId,
 				slotIndex: index,
-				entryDate: new Date().toISOString(),
+				entryDate: new Date(),
 				exitDate: null,
 			};
 			await Promise.all([
-				db.setSlots(newSlots),
-				db.addReservation(newReservation),
+				setSlots(newSlots),
+				addReservation(newReservation),
 			]);
 			return { index, vehicleId, newReservation, newOpenReservations };
 		}
@@ -115,11 +116,11 @@ export const freeSlotAsync = createAsyncThunk(
 			if (reservation) {
 				const updatedReservation = {
 					...reservation,
-					exitDate: new Date().toISOString(),
+					exitDate: new Date(),
 				};
 				await Promise.all([
-					db.setSlots(newSlots),
-					db.updateReservation(updatedReservation),
+					setSlots(newSlots),
+					updateReservation(updatedReservation),
 				]);
 				return {
 					slotIndex,

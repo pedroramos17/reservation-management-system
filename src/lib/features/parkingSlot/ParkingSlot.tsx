@@ -49,7 +49,7 @@ export default function ParkingSlotPage() {
   };
   
 
-  const formatDate = (dateString: string | null) => {
+  const formatDate = (dateString: string | Date | null) => {
     return dateString ? new Date(dateString).toLocaleString() : 'N/A';
   };
 

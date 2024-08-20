@@ -11,8 +11,8 @@ interface ParkingLotDB extends DBSchema {
 			id: string;
 			vehicleId: string;
 			slotIndex: number;
-			entryDate: string;
-			exitDate: string | null;
+			entryDate: Date;
+			exitDate: Date | null;
 		};
 		indexes: { "by-vehicle": string; "by-slot": number; "by-exit": string };
 	};
@@ -65,45 +65,6 @@ const dbPromise = openDB<ParkingLotDB>("parSlotMapDB", 1, {
 });
 
 export default dbPromise;
-
-export async function getSlots() {
-	const db = await dbPromise;
-	return db.getAll("slots");
-}
-
-export async function setSlots(slots: boolean[]) {
-	const db = await dbPromise;
-	const tx = db.transaction("slots", "readwrite");
-	await Promise.all(
-		slots.map((isReserved, index) => tx.store.put(isReserved, index))
-	);
-	await tx.done;
-}
-
-export async function getOpenReservations() {
-	const db = await dbPromise;
-	const allReservations = await db.getAll("reservations");
-
-	const allOpenReservations = allReservations.filter(
-		(r) => r.exitDate === null
-	);
-	return allOpenReservations;
-}
-
-export async function getReservations() {
-	const db = await dbPromise;
-	return db.getAll("reservations");
-}
-
-export async function addReservation(reservation: Reservation) {
-	const db = await dbPromise;
-	await db.add("reservations", reservation);
-}
-
-export async function updateReservation(reservation: Reservation) {
-	const db = await dbPromise;
-	await db.put("reservations", reservation);
-}
 
 export type Reservation = ParkingLotDB["reservations"]["value"];
 export type Customer = ParkingLotDB["customers"]["value"];
