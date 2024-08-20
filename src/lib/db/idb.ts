@@ -5,7 +5,7 @@ interface ParkingLotDB extends DBSchema {
 		key: number;
 		value: boolean;
 	};
-	reservations: {
+	bookings: {
 		key: string;
 		value: {
 			id: string;
@@ -55,7 +55,7 @@ interface ParkingLotDB extends DBSchema {
 const dbPromise = openDB<ParkingLotDB>("parSlotMapDB", 1, {
 	upgrade(db) {
 		db.createObjectStore("slots");
-		const historyStore = db.createObjectStore("reservations", {
+		const historyStore = db.createObjectStore("bookings", {
 			keyPath: "id",
 		});
 		historyStore.createIndex("by-vehicle", "vehicleId");
@@ -66,7 +66,7 @@ const dbPromise = openDB<ParkingLotDB>("parSlotMapDB", 1, {
 
 export default dbPromise;
 
-export type Reservation = ParkingLotDB["reservations"]["value"];
+export type Booking = ParkingLotDB["bookings"]["value"];
 export type Customer = ParkingLotDB["customers"]["value"];
 
 export enum Stores {

@@ -1,4 +1,4 @@
-import dbPromise, { Reservation, Stores } from "../db/idb";
+import dbPromise, { Booking, Stores } from "../db/idb";
 const SLOTS = Stores.Slots;
 const getSlots = async () => {
 	const db = await dbPromise;
@@ -14,36 +14,34 @@ const setSlots = async (slots: boolean[]) => {
 	await tx.done;
 };
 
-const getOpenReservations = async () => {
+const getOpenBookings = async () => {
 	const db = await dbPromise;
-	const allReservations = await db.getAll("reservations");
+	const allBookings = await db.getAll("bookings");
 
-	const allOpenReservations = allReservations.filter(
-		(r) => r.exitDate === null
-	);
-	return allOpenReservations;
+	const allOpenBookings = allBookings.filter((r) => r.exitDate === null);
+	return allOpenBookings;
 };
 
-const getReservations = async () => {
+const getBookings = async () => {
 	const db = await dbPromise;
-	return db.getAll("reservations");
+	return db.getAll("bookings");
 };
 
-const addReservation = async (reservation: Reservation) => {
+const addBooking = async (booking: Booking) => {
 	const db = await dbPromise;
-	await db.add("reservations", reservation);
+	await db.add("bookings", booking);
 };
 
-const updateReservation = async (reservation: Reservation) => {
+const updateBooking = async (booking: Booking) => {
 	const db = await dbPromise;
-	await db.put("reservations", reservation);
+	await db.put("bookings", booking);
 };
 
 export {
 	getSlots,
 	setSlots,
-	getOpenReservations,
-	getReservations,
-	addReservation,
-	updateReservation,
+	getOpenBookings,
+	getBookings,
+	addBooking,
+	updateBooking,
 };

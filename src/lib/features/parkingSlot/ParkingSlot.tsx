@@ -8,10 +8,11 @@ import Toast from '@/lib/common/components/Toast';
 
 export default function ParkingSlotPage() {
   const dispatch = useAppDispatch();
-  const { slots, openReservations, reservations, status, error } =
+  const { slots, openBookings, bookings, status, error } =
   useAppSelector((state) => state.parkingSlot);
   const { reserveSlot, freeSlot } = useParkingSlot();
   const [vehicleId, setVehicleId] = useState('');
+  const [durationInMinutes, setDurationInMinutes] = useState(0);
 
   useEffect(() => {
 		dispatch(initializeSlotsAsync(10));
@@ -36,10 +37,11 @@ export default function ParkingSlotPage() {
     try {
       const resultAction = await freeSlot(index);
       if (freeSlotAsync.fulfilled.match(resultAction)) {
-        const { slotIndex, updatedReservation } = resultAction.payload;
-        const duration = new Date(updatedReservation.exitDate!).getTime() - new Date(updatedReservation.entryDate).getTime();
+        const { slotIndex, updatedBooking } = resultAction.payload;
+        const duration = new Date(updatedBooking.exitDate!).getTime() - new Date(updatedBooking.entryDate).getTime();
         const durationInMinutes = Math.round(duration / 60000);
-        console.log(`Slot ${slotIndex} freed. Vehicle ${updatedReservation.vehicleId} stayed for ${durationInMinutes} minutes.`);
+        console.log(`Slot ${slotIndex} freed. Vehicle ${updatedBooking.vehicleId} stayed for ${durationInMinutes} minutes.`);
+        setDurationInMinutes(durationInMinutes);
       } else {
         <Toast toastMessage='Failed to free slot' />
       }
@@ -66,22 +68,46 @@ export default function ParkingSlotPage() {
         <div key={index}>
           <button onClick={() => handleFree(index)} disabled={!slot}>
             {slot 
-              ? `Free Slot ${index} (Vehicle: ${openReservations.find((r) => r.slotIndex === index)?.vehicleId})` 
+              ? `Free Slot ${index} (Vehicle: ${openBookings.find((r) => r.slotIndex === index)?.vehicleId})` 
               : `Slot ${index} (Free)`}
           </button>
         </div>
       ))}
-      <h3>Reservation History</h3>
+      <h3>Booking History</h3>
       <ul>
-        {reservations.map((reservation) => (
-          <li key={reservation.id}>
-            Vehicle: {reservation.vehicleId}, 
-            Slot: {reservation.slotIndex}, 
-            Entry: {formatDate(reservation.entryDate)}, 
-            Exit: {formatDate(reservation.exitDate)}
-          </li>
-        ))}
+        {bookings.map((booking) => {
+          const { hours, minutes, cost } = calculateDurationAndCost(booking.entryDate, booking.exitDate);
+          return (
+            <li key={booking.id}>
+              Vehicle: {booking.vehicleId}, 
+              Slot: {booking.slotIndex}, 
+              Entry: {formatDate(booking.entryDate)}, 
+              Exit: {formatDate(booking.exitDate)},
+              Duration: {hours}h {minutes}m,
+              Cost: ${cost.toFixed(2)}
+            </li>
+          )
+        } )}
       </ul>
     </div>
   );
 }
+
+const calculateDurationAndCost = (entryDate: Date, exitDate: Date | null) => {
+  const entry = new Date(entryDate);
+  const exit = exitDate ? new Date(exitDate) : new Date();
+  const durationMs = exit.getTime() - entry.getTime();
+  const hours = Math.floor(durationMs / (1000 * 60 * 60));
+  const minutes = Math.floor((durationMs % (1000 * 60 * 60)) / (1000 * 60));
+  
+  // Assuming a rate of $2 per hour, with a minimum of 1 hour
+  const cost = Math.max(1, Math.ceil(durationMs / (1000 * 60 * 60))) * 2;
+  
+  return { hours, minutes, cost };
+};
+
+
+const calculateDurationInMinutes = (entryDate: Date, exitDate: Date | null) => {
+  return exitDate ? Math.round((exitDate.getTime() - entryDate.getTime()) / 60000) : entryDate.getTime() - new Date().getTime();
+};
+

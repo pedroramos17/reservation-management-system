@@ -1,30 +1,30 @@
 // src/features/parkingSlot/parkingSlotSlice.ts
 import { createSlice, createAsyncThunk } from "@reduxjs/toolkit";
-import type { Reservation } from "@/lib/db/idb";
+import type { Booking } from "@/lib/db/idb";
 import {
-	addReservation,
-	getOpenReservations,
-	getReservations,
+	addBooking,
+	getOpenBookings,
+	getBookings,
 	getSlots,
-	updateReservation,
+	updateBooking,
 	setSlots,
 } from "@/lib/repositories/parkingSlotRepository";
-interface OpenReservations {
+interface OpenBookings {
 	slotIndex: number;
 	vehicleId: string | null;
 }
 
 interface ParkingSlotState {
 	slots: boolean[];
-	openReservations: OpenReservations[];
-	reservations: Reservation[];
+	openBookings: OpenBookings[];
+	bookings: Booking[];
 	status: "idle" | "loading" | "failed";
 	error: string | null;
 }
 const initialState: ParkingSlotState = {
 	slots: [],
-	openReservations: [],
-	reservations: [],
+	openBookings: [],
+	bookings: [],
 	status: "idle",
 	error: null,
 };
@@ -32,15 +32,15 @@ const initialState: ParkingSlotState = {
 export const initializeFromDB = createAsyncThunk(
 	"parkingSlot/initializeFromDB",
 	async () => {
-		const [slots, openReservations, reservations] = await Promise.all([
+		const [slots, openBookings, bookings] = await Promise.all([
 			getSlots(),
-			getOpenReservations(),
-			getReservations(),
+			getOpenBookings(),
+			getBookings(),
 		]);
 		return {
 			slots,
-			openReservations,
-			reservations,
+			openBookings,
+			bookings,
 		};
 	}
 );
@@ -52,9 +52,9 @@ export const initializeSlotsAsync = createAsyncThunk(
 		if (slots.length !== slotCount) {
 			slots = new Array(slotCount).fill(false);
 		}
-		const openReservations = await getOpenReservations();
+		const openBookings = await getOpenBookings();
 		await setSlots(slots);
-		return { slots, openReservations };
+		return { slots, openBookings };
 	}
 );
 
@@ -68,25 +68,22 @@ export const reserveSlotAsync = createAsyncThunk(
 		if (index !== -1) {
 			const newSlots = [...state.parkingSlot.slots];
 			newSlots[index] = true;
-			const newOpenReservations = [
-				...state.parkingSlot.openReservations,
+			const newOpenBookings = [
+				...state.parkingSlot.openBookings,
 				{
 					slotIndex: index,
 					vehicleId: vehicleId,
 				},
 			];
-			const newReservation: Reservation = {
+			const newBooking: Booking = {
 				id: Date.now().toString(),
 				vehicleId,
 				slotIndex: index,
 				entryDate: new Date(),
 				exitDate: null,
 			};
-			await Promise.all([
-				setSlots(newSlots),
-				addReservation(newReservation),
-			]);
-			return { index, vehicleId, newReservation, newOpenReservations };
+			await Promise.all([setSlots(newSlots), addBooking(newBooking)]);
+			return { index, vehicleId, newBooking, newOpenBookings };
 		}
 		throw new Error("No available slots");
 	}
@@ -100,36 +97,36 @@ export const freeSlotAsync = createAsyncThunk(
 			const newSlots = [...state.parkingSlot.slots];
 			newSlots[slotIndex] = false;
 			// Create a new object without the slotIndex property
-			const newOpenReservations = [
-				...state.parkingSlot.openReservations,
-			].filter((r) => r.slotIndex !== slotIndex);
+			const newOpenBookings = [...state.parkingSlot.openBookings].filter(
+				(r) => r.slotIndex !== slotIndex
+			);
 
-			const vehicleId = state.parkingSlot.openReservations.find(
+			const vehicleId = state.parkingSlot.openBookings.find(
 				(r) => r.slotIndex === slotIndex
 			)?.vehicleId;
-			const reservation = state.parkingSlot.reservations.find(
+			const booking = state.parkingSlot.bookings.find(
 				(r) =>
 					r.vehicleId === vehicleId &&
 					r.slotIndex === slotIndex &&
 					r.exitDate === null
 			);
-			if (reservation) {
-				const updatedReservation = {
-					...reservation,
+			if (booking) {
+				const updatedBooking = {
+					...booking,
 					exitDate: new Date(),
 				};
 				await Promise.all([
 					setSlots(newSlots),
-					updateReservation(updatedReservation),
+					updateBooking(updatedBooking),
 				]);
 				return {
 					slotIndex,
-					updatedReservation,
-					newOpenReservations,
+					updatedBooking,
+					newOpenBookings,
 				};
 			}
 		}
-		throw new Error("Slot not reserved or reservation not found");
+		throw new Error("Slot not reserved or booking not found");
 	}
 );
 
@@ -145,8 +142,8 @@ export const parkingSlotSlice = createSlice({
 			.addCase(initializeFromDB.fulfilled, (state, action): any => {
 				state.status = "idle";
 				state.slots = action.payload.slots;
-				state.openReservations = action.payload.openReservations;
-				state.reservations = action.payload.reservations;
+				state.openBookings = action.payload.openBookings;
+				state.bookings = action.payload.bookings;
 			})
 			.addCase(initializeFromDB.rejected, (state, action) => {
 				state.status = "failed";
@@ -155,22 +152,21 @@ export const parkingSlotSlice = createSlice({
 			})
 			.addCase(initializeSlotsAsync.fulfilled, (state, action) => {
 				state.slots = action.payload.slots;
-				state.openReservations = action.payload.openReservations;
+				state.openBookings = action.payload.openBookings;
 			})
 			.addCase(reserveSlotAsync.fulfilled, (state, action) => {
 				state.slots[action.payload.index] = true;
-				state.openReservations = action.payload.newOpenReservations;
-				state.reservations.push(action.payload.newReservation);
+				state.openBookings = action.payload.newOpenBookings;
+				state.bookings.push(action.payload.newBooking);
 			})
 			.addCase(freeSlotAsync.fulfilled, (state, action) => {
 				state.slots[action.payload.slotIndex] = false;
-				state.openReservations = action.payload.newOpenReservations;
-				const index = state.reservations.findIndex(
-					(r) => r.id === action.payload.updatedReservation.id
+				state.openBookings = action.payload.newOpenBookings;
+				const index = state.bookings.findIndex(
+					(r) => r.id === action.payload.updatedBooking.id
 				);
 				if (index !== -1) {
-					state.reservations[index] =
-						action.payload.updatedReservation;
+					state.bookings[index] = action.payload.updatedBooking;
 				}
 			});
 	},
