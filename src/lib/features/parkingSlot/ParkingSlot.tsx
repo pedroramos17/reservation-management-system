@@ -12,7 +12,6 @@ export default function ParkingSlotPage() {
   useAppSelector((state) => state.parkingSlot);
   const { reserveSlot, freeSlot } = useParkingSlot();
   const [vehicleId, setVehicleId] = useState('');
-  const [slotNumber, setSlotNumber] = useState(0);
 
   useEffect(() => {
 		dispatch(initializeSlotsAsync(10));
