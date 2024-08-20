@@ -11,18 +11,12 @@ export interface User extends Entity {
 	operatingHour: string;
 }
 
-interface Slot {
-	[key: number]: boolean;
-	vehicleId: string | null;
-}
 export interface ParkingLot extends Entity {
 	totalSpaces: number;
-	slots: Slot[];
 }
 
 export interface Vehicle extends Entity {
 	customerId: string;
-	brand: string;
 	model: string;
 	year: number;
 	color: string;
@@ -32,9 +26,8 @@ export interface Vehicle extends Entity {
 export interface Customer extends Entity {
 	name: string;
 	email: string;
-	taxpayerRegistration: number;
 	phone: number;
-	address: string;
+	taxpayerRegistration: number;
 	vehicles: Vehicle[];
 }
 
@@ -44,15 +37,6 @@ export interface Reserve extends Entity {
 	slotId: string;
 	startDate: string;
 	endDate: string;
-	status: string; // pending, open, expired, canceled, finished
 }
 
 export interface Order extends Entity {}
-
-export enum Stores {
-	ParkingLots = "parkingLots",
-	Slots = "slots",
-	Customers = "customers",
-	Vehicles = "vehicles",
-	Reserves = "reserves",
-}
