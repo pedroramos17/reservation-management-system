@@ -73,7 +73,7 @@ export function useParkingSlot() {
 						...booking,
 						exitDate: new Date().getTime(),
 					};
-					return dispatch(
+					dispatch(
 						freeSlotAsync({
 							newSlots,
 							updatedBooking,
