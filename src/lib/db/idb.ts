@@ -1,4 +1,11 @@
-import { openDB, DBSchema, wrap } from "idb";
+import { openDB, DBSchema } from "idb";
+
+type RateByType =
+	| "less-than-10-minutes"
+	| "half-hour"
+	| "hour"
+	| "day"
+	| "month";
 
 interface ParkingLotDB extends DBSchema {
 	slots: {
@@ -11,10 +18,21 @@ interface ParkingLotDB extends DBSchema {
 			id: string;
 			vehicleId: string;
 			slotIndex: number;
-			entryDate: Date;
-			exitDate: Date | null;
+			entryDate: number;
+			exitDate: number | null;
 		};
 		indexes: { "by-vehicle": string; "by-slot": number; "by-exit": string };
+	};
+	bills: {
+		key: string;
+		value: {
+			id: string;
+			bookingId: string;
+			minutes: number;
+			rateBy: RateByType;
+			price: number;
+		};
+		indexes: { "by-booking": string };
 	};
 	customers: {
 		key: string;
@@ -54,25 +72,36 @@ interface ParkingLotDB extends DBSchema {
 
 const dbPromise = openDB<ParkingLotDB>("parSlotMapDB", 1, {
 	upgrade(db) {
-		db.createObjectStore("slots");
-		const historyStore = db.createObjectStore("bookings", {
+		db.createObjectStore(SLOTS);
+		const bookingStore = db.createObjectStore(BOOKINGS, {
 			keyPath: "id",
 		});
-		historyStore.createIndex("by-vehicle", "vehicleId");
-		historyStore.createIndex("by-slot", "slotIndex");
-		historyStore.createIndex("by-exit", "exitDate");
+		bookingStore.createIndex("by-vehicle", "vehicleId");
+		bookingStore.createIndex("by-slot", "slotIndex");
+		bookingStore.createIndex("by-exit", "exitDate");
+		const billStore = db.createObjectStore(BILLS, {
+			keyPath: "id",
+		});
+		billStore.createIndex("by-booking", "bookingId");
 	},
 });
 
 export default dbPromise;
 
-export type Booking = ParkingLotDB["bookings"]["value"];
-export type Customer = ParkingLotDB["customers"]["value"];
+export type Booking = ParkingLotDB[BookingType]["value"];
+export type Customer = ParkingLotDB[CustomerType]["value"];
+export type Bill = ParkingLotDB[BillType]["value"];
 
-export enum Stores {
-	ParkingLots = "parkingLots",
-	Slots = "slots",
-	Customers = "customers",
-	Vehicles = "vehicles",
-	Reserves = "reserves",
-}
+export const PARKING_LOTS = "parkingLots",
+	SLOTS = "slots",
+	BOOKINGS = "bookings",
+	BILLS = "bills",
+	CUSTOMERS = "customers",
+	VEHICLES = "vehicles";
+
+type BookingType = typeof BOOKINGS;
+type BillType = typeof BILLS;
+type CustomerType = typeof CUSTOMERS;
+type VehicleType = typeof VEHICLES;
+type SlotType = typeof SLOTS;
+type ParkingLotType = typeof PARKING_LOTS;
