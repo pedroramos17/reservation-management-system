@@ -1,13 +1,12 @@
-import dbPromise, { Booking, Stores } from "../db/idb";
-const SLOTS = Stores.Slots;
+import dbPromise, { Booking, Bill, SLOTS, BOOKINGS, BILLS } from "../db/idb";
 const getSlots = async () => {
 	const db = await dbPromise;
-	return db.getAll("slots");
+	return db.getAll(SLOTS);
 };
 
 const setSlots = async (slots: boolean[]) => {
 	const db = await dbPromise;
-	const tx = db.transaction("slots", "readwrite");
+	const tx = db.transaction(SLOTS, "readwrite");
 	await Promise.all(
 		slots.map((isReserved, index) => tx.store.put(isReserved, index))
 	);
@@ -16,7 +15,7 @@ const setSlots = async (slots: boolean[]) => {
 
 const getOpenBookings = async () => {
 	const db = await dbPromise;
-	const allBookings = await db.getAll("bookings");
+	const allBookings = await db.getAll(BOOKINGS);
 
 	const allOpenBookings = allBookings.filter((r) => r.exitDate === null);
 	return allOpenBookings;
@@ -24,17 +23,27 @@ const getOpenBookings = async () => {
 
 const getBookings = async () => {
 	const db = await dbPromise;
-	return db.getAll("bookings");
+	return db.getAll(BOOKINGS);
 };
 
 const addBooking = async (booking: Booking) => {
 	const db = await dbPromise;
-	await db.add("bookings", booking);
+	await db.add(BOOKINGS, booking);
 };
 
 const updateBooking = async (booking: Booking) => {
 	const db = await dbPromise;
-	await db.put("bookings", booking);
+	await db.put(BOOKINGS, booking);
+};
+
+const getBills = async () => {
+	const db = await dbPromise;
+	return db.getAll(BILLS);
+};
+
+const addBill = async (bill: Bill) => {
+	const db = await dbPromise;
+	await db.add(BILLS, bill);
 };
 
 export {
@@ -44,4 +53,6 @@ export {
 	getBookings,
 	addBooking,
 	updateBooking,
+	getBills,
+	addBill,
 };
