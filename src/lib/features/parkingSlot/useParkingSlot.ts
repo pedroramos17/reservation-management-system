@@ -3,7 +3,6 @@ import {
 	reserveSlotAsync,
 	freeSlotAsync,
 	initializeFromDB,
-	getSlotsAsync,
 } from "./parkingSlotSlice";
 import { useAppDispatch, useAppSelector } from "@/lib/common/hooks/hooks";
 import { Booking } from "@/lib/db/idb";
@@ -52,9 +51,40 @@ export function useParkingSlot() {
 	);
 	const free = useCallback(
 		(slotIndex: number) => {
-			return dispatch(freeSlotAsync(slotIndex));
+			if (slots[slotIndex]) {
+				const newSlots = [...slots];
+				newSlots[slotIndex] = false;
+				// Create a new object without the slotIndex property
+				const newOpenBookings = [...openBookings].filter(
+					(r) => r.slotIndex !== slotIndex
+				);
+
+				const vehicleId = openBookings.find(
+					(r) => r.slotIndex === slotIndex
+				)?.vehicleId;
+				const booking = bookings.find(
+					(r) =>
+						r.vehicleId === vehicleId &&
+						r.slotIndex === slotIndex &&
+						r.exitDate === null
+				);
+				if (booking) {
+					const updatedBooking = {
+						...booking,
+						exitDate: new Date().getTime(),
+					};
+					return dispatch(
+						freeSlotAsync({
+							newSlots,
+							updatedBooking,
+							slotIndex,
+							newOpenBookings,
+						})
+					);
+				}
+			}
 		},
-		[dispatch]
+		[dispatch, slots, openBookings, bookings]
 	);
 
 	return {

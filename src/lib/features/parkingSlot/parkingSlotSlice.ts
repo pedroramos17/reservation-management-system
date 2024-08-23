@@ -77,46 +77,26 @@ export const reserveSlotAsync = createAsyncThunk(
 	}
 );
 
+type FreeSlotProps = {
+	newSlots: boolean[];
+	updatedBooking: Booking;
+	slotIndex: number;
+	newOpenBookings: OpenBookings[];
+};
 export const freeSlotAsync = createAsyncThunk(
 	"parkingSlot/freeSlot",
-	async (slotIndex: number, { getState }) => {
-		const state = getState() as { parkingSlot: ParkingSlotState };
-		if (state.parkingSlot.slots[slotIndex]) {
-			const newSlots = [...state.parkingSlot.slots];
-			newSlots[slotIndex] = false;
-			// Create a new object without the slotIndex property
-			const newOpenBookings = [...state.parkingSlot.openBookings].filter(
-				(r) => r.slotIndex !== slotIndex
-			);
-
-			const vehicleId = state.parkingSlot.openBookings.find(
-				(r) => r.slotIndex === slotIndex
-			)?.vehicleId;
-			const booking = state.parkingSlot.bookings.find(
-				(r) =>
-					r.vehicleId === vehicleId &&
-					r.slotIndex === slotIndex &&
-					r.exitDate === null
-			);
-			if (booking) {
-				const updatedBooking = {
-					...booking,
-					exitDate: new Date().getTime(),
-				};
-
-				await Promise.all([
-					setSlots(newSlots),
-					updateBooking(updatedBooking),
-				]);
-
-				return {
-					slotIndex,
-					updatedBooking,
-					newOpenBookings,
-				};
-			}
-		}
-		throw new Error("Slot not reserved or booking not found");
+	async ({
+		newSlots,
+		updatedBooking,
+		slotIndex,
+		newOpenBookings,
+	}: FreeSlotProps) => {
+		await Promise.all([setSlots(newSlots), updateBooking(updatedBooking)]);
+		return {
+			slotIndex,
+			updatedBooking,
+			newOpenBookings,
+		};
 	}
 );
 
