@@ -1,6 +1,6 @@
 // src/features/parkingSlot/parkingSlotSlice.ts
 import { createSlice, createAsyncThunk } from "@reduxjs/toolkit";
-import type { Booking } from "@/lib/db/idb";
+import type { Booking, Bill } from "@/lib/db/idb";
 import {
 	addBooking,
 	getOpenBookings,
@@ -8,16 +8,18 @@ import {
 	getSlots,
 	updateBooking,
 	setSlots,
+	addBill,
+	getBills,
 } from "@/lib/repositories/parkingSlotRepository";
 interface OpenBookings {
 	slotIndex: number;
 	vehicleId: string | null;
 }
-
 interface ParkingSlotState {
 	slots: boolean[];
 	openBookings: OpenBookings[];
 	bookings: Booking[];
+	bills: Bill[];
 	status: "idle" | "loading" | "failed";
 	error: string | null;
 }
@@ -25,6 +27,7 @@ const initialState: ParkingSlotState = {
 	slots: [],
 	openBookings: [],
 	bookings: [],
+	bills: [],
 	status: "idle",
 	error: null,
 };
@@ -32,15 +35,17 @@ const initialState: ParkingSlotState = {
 export const initializeFromDB = createAsyncThunk(
 	"parkingSlot/initializeFromDB",
 	async () => {
-		const [slots, openBookings, bookings] = await Promise.all([
+		const [slots, openBookings, bookings, bills] = await Promise.all([
 			getSlots(),
 			getOpenBookings(),
 			getBookings(),
+			getBills(),
 		]);
 		return {
 			slots,
 			openBookings,
 			bookings,
+			bills,
 		};
 	}
 );
@@ -58,34 +63,17 @@ export const initializeSlotsAsync = createAsyncThunk(
 	}
 );
 
+type ReserveProps = {
+	newSlots: boolean[];
+	newBooking: Booking;
+	index: number;
+	newOpenBookings: OpenBookings[];
+};
 export const reserveSlotAsync = createAsyncThunk(
 	"parkingSlot/reserveSlot",
-	async ({ vehicleId }: { vehicleId: string }, { getState }) => {
-		const state = getState() as { parkingSlot: ParkingSlotState };
-		const index = state.parkingSlot.slots.findIndex(
-			(isReserved) => !isReserved
-		);
-		if (index !== -1) {
-			const newSlots = [...state.parkingSlot.slots];
-			newSlots[index] = true;
-			const newOpenBookings = [
-				...state.parkingSlot.openBookings,
-				{
-					slotIndex: index,
-					vehicleId: vehicleId,
-				},
-			];
-			const newBooking: Booking = {
-				id: Date.now().toString(),
-				vehicleId,
-				slotIndex: index,
-				entryDate: new Date(),
-				exitDate: null,
-			};
-			await Promise.all([setSlots(newSlots), addBooking(newBooking)]);
-			return { index, vehicleId, newBooking, newOpenBookings };
-		}
-		throw new Error("No available slots");
+	async ({ newSlots, newBooking, index, newOpenBookings }: ReserveProps) => {
+		await Promise.all([setSlots(newSlots), addBooking(newBooking)]);
+		return { index, newOpenBookings, newBooking };
 	}
 );
 
@@ -113,12 +101,14 @@ export const freeSlotAsync = createAsyncThunk(
 			if (booking) {
 				const updatedBooking = {
 					...booking,
-					exitDate: new Date(),
+					exitDate: new Date().getTime(),
 				};
+
 				await Promise.all([
 					setSlots(newSlots),
 					updateBooking(updatedBooking),
 				]);
+
 				return {
 					slotIndex,
 					updatedBooking,
@@ -144,6 +134,7 @@ export const parkingSlotSlice = createSlice({
 				state.slots = action.payload.slots;
 				state.openBookings = action.payload.openBookings;
 				state.bookings = action.payload.bookings;
+				state.bills = action.payload.bills;
 			})
 			.addCase(initializeFromDB.rejected, (state, action) => {
 				state.status = "failed";
