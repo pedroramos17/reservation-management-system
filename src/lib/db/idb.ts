@@ -33,7 +33,7 @@ interface ParkingLotDB extends DBSchema {
 			id: string;
 			name: string;
 			email: string;
-			phone: number;
+			phone: number | null;
 			taxpayerRegistration: number;
 			updatedAt: number | null;
 		};
@@ -45,11 +45,11 @@ interface ParkingLotDB extends DBSchema {
 			id: string;
 			brand: string;
 			model: string;
-			year: number;
+			year: number | null;
 			color: string;
 			variant: string;
 			licensePlate: string;
-			driverId: string;
+			customerId: string;
 			updatedAt: number | null;
 		};
 		indexes: { "by-driver": string };

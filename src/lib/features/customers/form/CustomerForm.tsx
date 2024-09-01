@@ -1,71 +1,54 @@
 'use client';
 
-import { useState, useEffect } from 'react';
-import { redirect } from 'next/navigation';
+import { useEffect, useState } from 'react';
+import { useRouter } from 'next/navigation';
 import { TextField, Button, Box } from '@mui/material';
 import { Formik, Form, FieldArray, FormikHelpers, getIn } from 'formik'
 import RemoveIcon from '@mui/icons-material/Remove';
 import ArrowBack from '@mui/icons-material/ArrowBack';
 import * as Yup from 'yup'
 import { ulid } from "ulidx";
-import Anchor from '@/lib/common/components/Link';
+import Anchor from '@/lib/common/components/Anchor';
 import {  ButtonContainer, Container, FlexContainer, GridContainer} from './styles';
 import { useAppDispatch, useAppSelector } from '@/lib/store';
-import { addCustomer, updateCustomer } from '../customersSlice';
+import { addCustomer, getCustomers, updateCustomer } from '../customersSlice';
 import { Vehicle } from '@/lib/db/idb';
-import { addVehicle, updateVehicle } from '../../vehicles/vehicleSlice';
+import { addVehicle, getVehicles, updateVehicle } from '../../vehicles/vehicleSlice';
+import { CustomerFormValues } from "./types";
+import { useCustomerFormInitialization } from './useCustomerFormInitialization';
+import useMergeCustomerWithVehicles from './useMergeCustomerWithVehicles';
 
 interface UrlParams {
   id: string;
 };
 
-interface CustomerFormValues {
-  name: string;
-  email: string;
-  taxpayerRegistration: string;
-  phone?: string;
-  vehicles: {
-    brand?: string;
-    model?: string;
-    year?: string;
-    color?: string;
-    variant?: string;
-    licensePlate?: string;
-  }[];
-}
-
-function parseStringToNumber(value: string | undefined) {
-  return value ? parseInt(value) : 0;
+function parseStringToNumberOrNull(value: string | undefined) {
+  return value ? parseInt(value) : null;
 }
 
 export default function CustomerForm(props: Readonly<UrlParams>) {
-  const dispatch = useAppDispatch();
-  const vehiclesState = useAppSelector((state) => state.vehicles);
-  const customersState = useAppSelector((state) => state.customers);
   const { id } = props;
+  const vehiclesState = useAppSelector((state) => state.vehicles);
+	const customersState = useAppSelector((state) => state.customers);
+	const customer = customersState.entities[id];
+	const vehicles = Object.values(vehiclesState.entities);
+  const router = useRouter()
+  const dispatch = useAppDispatch();
   const [error, setError] = useState<string | null>(null);
-  const { data, loading } = useAppSelector((state) => state.customerForm);
-  const [formCustomerValue, setFormCustomerValue] = useState<CustomerFormValues>({
-    name: '',
-    email: '',
-    taxpayerRegistration: "",
-    phone: "",
-    vehicles: [
-      {
-        brand: '',
-        model: '',
-        year: '',
-        color: '',
-        variant: '',
-        licensePlate: '',
-      }
-    ]
-  })
+  const customerWithVehicles = useMergeCustomerWithVehicles(customer, vehicles);
+  const formData = useCustomerFormInitialization(customerWithVehicles);
 
-  const handleAddCustomer = async (values: CustomerFormValues) => {
+  console.log('customerWithVehicles', customerWithVehicles)
+
+  useEffect(() => {
+    dispatch(getVehicles());
+    dispatch(getCustomers());
+  }, [dispatch]);
+
+  const handleAddCustomer = (values: CustomerFormValues) => {
     const { name, email, taxpayerRegistration, phone, vehicles } = values;
-    const phoneNumber = parseStringToNumber(phone);
-    const taxpayerRegistrationNumber = parseStringToNumber(taxpayerRegistration);
+    const phoneNumber = parseStringToNumberOrNull(phone);
+    const taxpayerRegistrationNumber = parseInt(taxpayerRegistration);
     const customerId = ulid();
     dispatch(addCustomer({ id: customerId, name, email, phone: phoneNumber, taxpayerRegistration: taxpayerRegistrationNumber, updatedAt: null }));
     if (vehicles.length > 0) {
@@ -73,7 +56,7 @@ export default function CustomerForm(props: Readonly<UrlParams>) {
         const vehicleId = ulid();
         const { brand, model, year, color, variant, licensePlate } = vehicle;
         const vehicleData = {
-          id: vehicleId, brand: brand ?? '',  model: model ?? '',  year: year ?? 0,  color: color ?? '',  variant: variant ?? '', licensePlate: licensePlate ?? '', driverId: customerId, updatedAt: null
+          id: vehicleId, brand: brand ?? '',  model: model ?? '',  year: parseStringToNumberOrNull(year),  color: color ?? '',  variant: variant ?? '', licensePlate: licensePlate ?? '', customerId, updatedAt: null
         } as Vehicle;
         dispatch(addVehicle(vehicleData));
       }
@@ -82,32 +65,22 @@ export default function CustomerForm(props: Readonly<UrlParams>) {
 
   const handleEditCustomer = (values: CustomerFormValues) => {
     const { name, email, taxpayerRegistration, phone, vehicles } = values;
-    const phoneNumber = parseStringToNumber(phone);
-    const taxpayerRegistrationNumber = parseStringToNumber(taxpayerRegistration);
+    const phoneNumber = parseStringToNumberOrNull(phone);
+    const taxpayerRegistrationNumber = parseInt(taxpayerRegistration);
     dispatch(updateCustomer({id, name, email, taxpayerRegistration: taxpayerRegistrationNumber, phone: phoneNumber, updatedAt: new Date().getTime()}));
-    if (vehicles.length > 0) {
-      for(const vehicle of vehicles) {
-        if (!vehicle.licensePlate) return console.error('License plate is required');
-        const vehicleState =  vehiclesState.entities[vehicle.licensePlate];
-        const { brand, model, year, color, variant, licensePlate } = vehicleState;
-        const vehicleData = {
-          id: vehicleState.id, brand: brand ?? '',  model: model ?? '',  year: year ?? 0,  color: color ?? '',  variant: variant ?? '', licensePlate: licensePlate ?? '', driverId: id, updatedAt: null
-        } as Vehicle;
-        dispatch(updateVehicle(vehicleData));
-      }
+    for(const vehicle of vehicles) {
+      if (!vehicle.licensePlate) {
+        setError(`Placa do carro ${vehicle.licensePlate} não encontrada`);
+        return console.error('License plate not found');
+      };
+      const { id, brand, model, year, color, variant, licensePlate } = vehicle;
+      const vehicleData = {
+        id: vehicle.id, brand: brand ?? '',  model: model ?? '',  year: parseStringToNumberOrNull(year),  color: color ?? '',  variant: variant ?? '', licensePlate: licensePlate ?? '', customerId: id, updatedAt: new Date().getTime(),
+      } as Vehicle;
+      dispatch(updateVehicle(vehicleData));
     }
   }
 
-  const handleFillForm = () => {
-    if (id) {
-      const driver = customersState.entities[id];
-      setFormCustomerValue(driver as unknown as CustomerFormValues);
-    }
-  }
-    
-    useEffect(() => {
-      handleFillForm();
-    })
   const initialValues = {
       name: '',
       email: '',
@@ -119,6 +92,7 @@ export default function CustomerForm(props: Readonly<UrlParams>) {
           model: '',
           year: '',
           color: '',
+          variant: '',
           licensePlate: '',
         }
       ]
@@ -135,19 +109,20 @@ export default function CustomerForm(props: Readonly<UrlParams>) {
         model: Yup.string().trim().nullable(),
         year: Yup.string().trim().nullable(),
         color: Yup.string().trim().nullable(),
+        variant: Yup.string().trim().nullable(),
         licensePlate: Yup.string().trim().required('Placa é obrigatório'),
       }).nullable(),
     )
   })
 
-  const handleSubmit = async (values: CustomerFormValues, { setSubmitting }: FormikHelpers<CustomerFormValues>) => {
+  const handleSubmit = (values: CustomerFormValues, { setSubmitting }: FormikHelpers<CustomerFormValues>) => {
     if (id) {
       handleEditCustomer(values);
     } else {
       handleAddCustomer(values);
     }
     setSubmitting(false);
-    redirect('/motoristas');
+    router.push('/motoristas')
   }
 
   return (
@@ -158,7 +133,7 @@ export default function CustomerForm(props: Readonly<UrlParams>) {
         <h1>{id ? "Editar" : "Cadastrar"} Motorista</h1>
         {error && <p style={{ color: 'red' }}>{error}</p>}
         <Formik
-          initialValues={formCustomerValue || initialValues}
+          initialValues={formData || initialValues}
           validationSchema={validationSchema}
           validateOnChange
           validateOnBlur
@@ -168,6 +143,8 @@ export default function CustomerForm(props: Readonly<UrlParams>) {
           {({ values, touched, errors, handleChange, handleBlur, isValid } ) => {
             const touchedName = getIn(touched, 'name');
             const errorName = getIn(errors, 'name');
+            const touchedEmail = getIn(touched, 'email');
+            const errorEmail = getIn(errors, 'email');
             const touchedTaxpayerRegistration = getIn(touched, 'taxpayerRegistration');
             const errorTaxpayerRegistration = getIn(errors, 'taxpayerRegistration');
             const touchedPhone = getIn(touched, 'phone');
@@ -187,6 +164,16 @@ export default function CustomerForm(props: Readonly<UrlParams>) {
                   required
                   autoFocus
                 />
+                <TextField
+                    label="Email"
+                    variant="standard"
+                    name="email"
+                    value={values.email}
+                    helperText={ touchedEmail && errorEmail ? errorEmail : ""}
+                    error={Boolean(touchedEmail && errorEmail)}
+                    onChange={handleChange}
+                    onBlur={handleBlur}
+                  />
                 <FlexContainer>
                   <TextField
                     label="CPF"
@@ -197,6 +184,7 @@ export default function CustomerForm(props: Readonly<UrlParams>) {
                     error={Boolean(touchedTaxpayerRegistration && errorTaxpayerRegistration)}
                     onChange={handleChange}
                     onBlur={handleBlur}
+                    required
                   />
                   <TextField
                     label="Telefone"
@@ -220,7 +208,8 @@ export default function CustomerForm(props: Readonly<UrlParams>) {
                           const model = `vehicles[${index}].model`;
                           const year = `vehicles[${index}].year`;
                           const color = `vehicles[${index}].color`;
-                          const plate = `vehicles[${index}].plate`;
+                          const variant = `vehicles[${index}].variant`;
+                          const plate = `vehicles[${index}].licensePlate`;
 
                           const touchedBrand = getIn(touched, brand);
                           const errorBrand = getIn(errors, brand);
@@ -233,6 +222,9 @@ export default function CustomerForm(props: Readonly<UrlParams>) {
 
                           const touchedColor = getIn(touched, color);
                           const errorColor = getIn(errors, color);
+
+                          const touchedVariant = getIn(touched, variant);
+                          const errorVariant = getIn(errors, variant);
 
                           const touchedPlate = getIn(touched, plate);
                           const errorPlate = getIn(errors, plate);
@@ -284,6 +276,16 @@ export default function CustomerForm(props: Readonly<UrlParams>) {
                               value={values.vehicles[index]?.color}
                               helperText={ touchedColor && errorColor ? errorColor : ""}
                               error={Boolean(touchedColor && errorColor)}
+                              onChange={handleChange}
+                              onBlur={handleBlur}
+                            />
+                            <TextField
+                              label="Variante"
+                              variant="standard"
+                              name={variant}
+                              value={values.vehicles[index]?.variant}
+                              helperText={ touchedVariant && errorVariant ? errorVariant : ""}
+                              error={Boolean(touchedVariant && errorVariant)}
                               onChange={handleChange}
                               onBlur={handleBlur}
                             />

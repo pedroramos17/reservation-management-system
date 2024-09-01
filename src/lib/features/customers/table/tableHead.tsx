@@ -11,8 +11,7 @@ import {
 } from '@mui/material';
 import { visuallyHidden } from '@mui/utils';
 import { Order } from '@/lib/utils/sorting';
-import { CustomerData } from '@/lib/core/types';
-
+import type { CustomerData } from './types';
 
 type Align = 'left' | 'center' | 'right' | 'justify' | 'inherit';
 

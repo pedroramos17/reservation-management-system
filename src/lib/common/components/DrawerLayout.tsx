@@ -20,7 +20,7 @@ import ListItemText from '@mui/material/ListItemText';
 import DriverIcon from './DriverIcon';
 import ProfileIcon from './ProfileIcon';
 import GateUpIcon from './GateUpIcon';
-import Anchor from './Link';
+import Anchor from './Anchor';
 
 const drawerWidth = 240;
 

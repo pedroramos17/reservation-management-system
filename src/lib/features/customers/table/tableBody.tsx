@@ -1,9 +1,9 @@
 import { Button, Checkbox, TableBody, TableCell, TableRow } from "@mui/material";
 import getComparator, { Order } from "@/lib/utils/sorting";
-import { CustomerData } from "@/lib/core/types";
 import { useMemo } from "react";
 import type { Customer } from "@/lib/db/idb";
-import Anchor from "@/lib/common/components/Link";
+import type { CustomerData } from './types';
+import Anchor from "@/lib/common/components/Anchor";
 
 interface TableBodyProps {
   rows: Customer[];
