@@ -2,12 +2,12 @@
 
 import { useEffect } from 'react';
 import FlexSearch from 'flexsearch';
-import CustomerTable from '@/lib/features/customer/table';
+import CustomerTable from '@/lib/features/customers/table';
 import SearchTool from '@/lib/common/components/SearchTool';
 import { Container, HeaderContainer } from '@/lib/common/components/styles';
 import Search from '@/lib/common/components/Search';
-import { useAppDispatch, useAppSelector } from "@/lib/common/hooks/hooks"
-import { getCustomers, deleteCustomer } from '@/lib/features/customer/customersSlice';
+import { useAppDispatch, useAppSelector } from "@/lib/store"
+import { getCustomers, deleteCustomer } from '@/lib/features/customers/customersSlice';
 import type { Customer } from '@/lib/db/idb';
     
 function fetchFilteredCustomers(query: string, customers: Customer[]|[]) {

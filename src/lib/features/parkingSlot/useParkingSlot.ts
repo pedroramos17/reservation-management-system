@@ -3,19 +3,21 @@ import {
 	reserveSlotAsync,
 	freeSlotAsync,
 	initializeFromDB,
+	createOrderAsync,
 } from "./parkingSlotSlice";
-import { useAppDispatch, useAppSelector } from "@/lib/common/hooks/hooks";
-import { Booking } from "@/lib/db/idb";
+import { useAppDispatch, useAppSelector } from "@/lib/store";
+import { Order, Booking, ChargeByType } from "@/lib/db/idb";
+import chargingStrategy from "./chargingStrategy";
 
 export function useParkingSlot() {
 	const dispatch = useAppDispatch();
-	const { slots, openBookings, bookings, bills, status, error } =
-		useAppSelector((state) => state.parkingSlot);
 
 	useEffect(() => {
 		dispatch(initializeFromDB());
 	}, [dispatch]);
 
+	const { slots, openBookings, bookings, orders, status, error } =
+		useAppSelector((state) => state.parkingSlot);
 	const reserve = useCallback(
 		(vehicleId: string) => {
 			const index = slots.findIndex((isReserved) => !isReserved);
@@ -58,7 +60,6 @@ export function useParkingSlot() {
 				const newOpenBookings = [...openBookings].filter(
 					(r) => r.slotIndex !== slotIndex
 				);
-
 				const vehicleId = openBookings.find(
 					(r) => r.slotIndex === slotIndex
 				)?.vehicleId;
@@ -69,26 +70,96 @@ export function useParkingSlot() {
 						r.exitDate === null
 				);
 				if (booking) {
-					const updatedBooking = {
+					const closedBooking = {
 						...booking,
 						exitDate: new Date().getTime(),
 					};
+
 					dispatch(
 						freeSlotAsync({
 							newSlots,
-							updatedBooking,
+							closedBooking,
 							slotIndex,
 							newOpenBookings,
 						})
 					);
+					return closedBooking;
 				}
 			}
 		},
 		[dispatch, slots, openBookings, bookings]
 	);
+	const convertMillisecondsToMinutes = (milliseconds: number) =>
+		Math.floor(milliseconds / (1000 * 60));
+	const howLongItTookForTheVehicleToLeaveInMinutes = useCallback(
+		(entryDate: number, exitDate: number) => {
+			return convertMillisecondsToMinutes(exitDate - entryDate);
+		},
+		[]
+	);
+
+	const chargingSelector = (
+		minutes: number,
+		chargeBy: ChargeByType,
+		chargeAmount: number
+	) => {
+		const {
+			lessThanTenMinutes,
+			halfHourCharging,
+			hourlyCharging,
+			dailyCharging,
+			monthlyCharging,
+			noneChargingType,
+		} = chargingStrategy(minutes);
+		const selectChargeMethod = (chargeBy: ChargeByType) => {
+			switch (chargeBy) {
+				case "none":
+					return noneChargingType();
+				case "less-than-10-minutes":
+					return lessThanTenMinutes(chargeAmount);
+				case "half-hour":
+					return halfHourCharging(chargeAmount);
+				case "hour":
+					return hourlyCharging(chargeAmount);
+				case "day":
+					return dailyCharging(chargeAmount);
+				case "month":
+					return monthlyCharging(chargeAmount);
+				default:
+					return noneChargingType();
+			}
+		};
+		return selectChargeMethod(chargeBy);
+	};
+
+	interface OrderProps {
+		bookingId: string;
+		timeSpentInMinutes: number;
+		chargeBy: ChargeByType;
+		price: number;
+	}
+	const createOrder = (props: OrderProps) => {
+		const { bookingId, timeSpentInMinutes, chargeBy, price } = props;
+		const booking = bookings.find((b) => b.id === bookingId);
+		if (!booking) {
+			return { message: "Booking not found", error: true };
+		}
+		const order: Order = {
+			id: Date.now().toString(),
+			bookingId,
+			minutes: timeSpentInMinutes,
+			chargeBy,
+			price,
+		};
+		dispatch(createOrderAsync(order));
+		return order.id;
+	};
 
 	return {
 		reserveSlot: reserve,
 		freeSlot: free,
+		howLongItTookForTheVehicleToLeaveInMinutes,
+		createOrder,
+		chargingSelector,
 	};
 }

@@ -17,7 +17,7 @@ import GatewayTableHead from './tableHead';
 import GatewayTableToolbar from './tableToolbar';
 import getComparator, { Order } from '@/lib/utils/sorting';
 import { useAppDispatch, useAppSelector } from '@/lib/common/hooks/hooks';
-import { getDrivers } from '../../customer/driversSlice';
+import { getDrivers } from '../../customers/driversSlice';
 import { getGateways } from '../gatewaySlice';
 import mergeGatewaysWithDrivers from '../../utils';
 import fetchFilteredDrivers from '@/lib/utils/search';

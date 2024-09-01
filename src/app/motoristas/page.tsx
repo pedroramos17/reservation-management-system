@@ -1,6 +1,6 @@
 'use client';
 
-import CustomerPage from "@/lib/features/customer/Customers";
+import CustomerPage from "@/lib/features/customers/Customers";
 
 interface DriverPageProps {
   readonly searchParams?: {

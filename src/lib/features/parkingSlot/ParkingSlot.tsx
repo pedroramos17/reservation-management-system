@@ -2,15 +2,14 @@
 
 import React, { useEffect, useState } from 'react';
 import { useParkingSlot } from './useParkingSlot';
-import { freeSlotAsync, initializeSlotsAsync, reserveSlotAsync } from './parkingSlotSlice';
-import { useAppDispatch, useAppSelector } from '@/lib/common/hooks/hooks';
-import Toast from '@/lib/common/components/Toast';
+import { initializeSlotsAsync } from './parkingSlotSlice';
+import { useAppDispatch, useAppSelector } from '@/lib/store';
 
 export default function ParkingSlotPage() {
   const dispatch = useAppDispatch();
-  const { slots, openBookings, bookings, bills, status, error } =
+  const { slots, openBookings, bookings, orders } =
   useAppSelector((state) => state.parkingSlot);
-  const { reserveSlot, freeSlot } = useParkingSlot();
+  const { reserveSlot, freeSlot, chargingSelector, createOrder, howLongItTookForTheVehicleToLeaveInMinutes } = useParkingSlot();
   const [vehicleId, setVehicleId] = useState('');
 
   useEffect(() => {
@@ -20,26 +19,34 @@ export default function ParkingSlotPage() {
   const handleReserve = async () => {
     if (vehicleId) {
       try {
-        const resultAction = await reserveSlot(vehicleId);
-        if (reserveSlotAsync.fulfilled.match(resultAction)) {
-          console.log(`Slot ${resultAction.payload.index} reserved for vehicle ${vehicleId}`);
-          setVehicleId('');
-        } else {
-          console.log('Failed to reserve slot');
-          <Toast toastMessage='Failed to reserve slot' />;
-        }
-      } catch (err) {
+            await reserveSlot(vehicleId);
+            console.log(`Slot was reserved for vehicle ${vehicleId}`);
+            setVehicleId('');
+        } catch (err) {
         console.error('Error reserving slot:', err);
       }
     };
   }
-  const handleFree = async (index: number) => {
+  const handleFree = (index: number) => {
     try {
-      const resultAction = await freeSlot(index);
-      if (freeSlotAsync.fulfilled.match(resultAction)) {
-      } else {
-        <Toast toastMessage='Failed to free slot' />
+      const slotRealesed = freeSlot(index);
+      if (!slotRealesed) {
+        console.log(`Slot ${index} was not reserved`);
+        return;
       }
+      const minutesSpent = howLongItTookForTheVehicleToLeaveInMinutes(
+        slotRealesed.entryDate, slotRealesed.exitDate
+      )
+      const chargeBy =  "hour";
+      const price = chargingSelector(minutesSpent, chargeBy, 0.25);
+
+    createOrder({
+      bookingId: slotRealesed.id,
+      timeSpentInMinutes: minutesSpent,
+      chargeBy,
+      price,
+    })
+      console.log(`Slot ${index} was freed`);
     } catch (err) {
       console.error('Error freeing slot:', err);
     }
@@ -81,17 +88,21 @@ export default function ParkingSlotPage() {
           )
         } )}
       </ul>
-      {bills && (
+      {orders && (
         <div>
-          <h3>Current Bills</h3>
+          <h3>Current Orders</h3>
           <ul>
             {
-              bills.map((bill) => (
-                <li key={bill.bookingId}>
-                  Duration: {bill.minutes}h {bill.minutes}m, 
-                  Total cost: ${bill.price.toFixed(2)}
-                </li>
-              ))
+              orders.map((order) => {
+                const hours = Math.floor(order.minutes / 60),
+                minutes = order.minutes % 60;
+                return  (
+                  <li key={order.bookingId}>
+                    Duration: {hours}h {minutes}m, 
+                    Total cost: ${order.price.toFixed(2)}
+                  </li>
+                )
+              })
             }
           </ul>
         </div>

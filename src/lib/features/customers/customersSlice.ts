@@ -99,7 +99,7 @@ export const customerSlice = createSlice({
 				state.loading = "pending";
 				state.error = null;
 			})
-			.addCase(deleteCustomer.fulfilled, (state, {payload}) => {
+			.addCase(deleteCustomer.fulfilled, (state, { payload }) => {
 				state.loading = "succeeded";
 				customersAdapter.removeOne(state, payload);
 			})
@@ -111,6 +111,5 @@ export const customerSlice = createSlice({
 	},
 });
 
-const { reducer } = customerSlice;
 export { getCustomers, addCustomer, updateCustomer, deleteCustomer };
-export default reducer;
+export default customerSlice.reducer;

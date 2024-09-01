@@ -1,6 +1,6 @@
 // src/features/parkingSlot/parkingSlotSlice.ts
 import { createSlice, createAsyncThunk } from "@reduxjs/toolkit";
-import type { Booking, Bill } from "@/lib/db/idb";
+import type { Booking, Order } from "@/lib/db/idb";
 import {
 	addBooking,
 	getOpenBookings,
@@ -8,8 +8,8 @@ import {
 	getSlots,
 	updateBooking,
 	setSlots,
-	addBill,
-	getBills,
+	addOrder,
+	getOrders,
 } from "@/lib/repositories/parkingSlotRepository";
 interface OpenBookings {
 	slotIndex: number;
@@ -19,7 +19,7 @@ interface ParkingSlotState {
 	slots: boolean[];
 	openBookings: OpenBookings[];
 	bookings: Booking[];
-	bills: Bill[];
+	orders: Order[];
 	status: "idle" | "loading" | "failed";
 	error: string | null;
 }
@@ -27,7 +27,7 @@ const initialState: ParkingSlotState = {
 	slots: [],
 	openBookings: [],
 	bookings: [],
-	bills: [],
+	orders: [],
 	status: "idle",
 	error: null,
 };
@@ -35,17 +35,18 @@ const initialState: ParkingSlotState = {
 export const initializeFromDB = createAsyncThunk(
 	"parkingSlot/initializeFromDB",
 	async () => {
-		const [slots, openBookings, bookings, bills] = await Promise.all([
+		const [slots, openBookings, bookings, orders] = await Promise.all([
 			getSlots(),
 			getOpenBookings(),
 			getBookings(),
-			getBills(),
+			getOrders(),
 		]);
+		console.log("initializeFromDB", slots, openBookings, bookings, orders);
 		return {
 			slots,
 			openBookings,
 			bookings,
-			bills,
+			orders,
 		};
 	}
 );
@@ -79,7 +80,7 @@ export const reserveSlotAsync = createAsyncThunk(
 
 type FreeSlotProps = {
 	newSlots: boolean[];
-	updatedBooking: Booking;
+	closedBooking: Booking;
 	slotIndex: number;
 	newOpenBookings: OpenBookings[];
 };
@@ -87,16 +88,25 @@ export const freeSlotAsync = createAsyncThunk(
 	"parkingSlot/freeSlot",
 	async ({
 		newSlots,
-		updatedBooking,
+		closedBooking,
 		slotIndex,
 		newOpenBookings,
 	}: FreeSlotProps) => {
-		await Promise.all([setSlots(newSlots), updateBooking(updatedBooking)]);
+		await Promise.all([setSlots(newSlots), updateBooking(closedBooking)]);
 		return {
 			slotIndex,
-			updatedBooking,
+			closedBooking,
 			newOpenBookings,
 		};
+	}
+);
+
+export const createOrderAsync = createAsyncThunk(
+	"parkingSlot/createOrder",
+	async (order: Order) => {
+		await addOrder(order);
+
+		return order;
 	}
 );
 
@@ -109,12 +119,12 @@ export const parkingSlotSlice = createSlice({
 			.addCase(initializeFromDB.pending, (state) => {
 				state.status = "loading";
 			})
-			.addCase(initializeFromDB.fulfilled, (state, action): any => {
+			.addCase(initializeFromDB.fulfilled, (state, action) => {
 				state.status = "idle";
 				state.slots = action.payload.slots;
 				state.openBookings = action.payload.openBookings;
 				state.bookings = action.payload.bookings;
-				state.bills = action.payload.bills;
+				state.orders = action.payload.orders;
 			})
 			.addCase(initializeFromDB.rejected, (state, action) => {
 				state.status = "failed";
@@ -134,11 +144,14 @@ export const parkingSlotSlice = createSlice({
 				state.slots[action.payload.slotIndex] = false;
 				state.openBookings = action.payload.newOpenBookings;
 				const index = state.bookings.findIndex(
-					(r) => r.id === action.payload.updatedBooking.id
+					(r) => r.id === action.payload.closedBooking.id
 				);
 				if (index !== -1) {
-					state.bookings[index] = action.payload.updatedBooking;
+					state.bookings[index] = action.payload.closedBooking;
 				}
+			})
+			.addCase(createOrderAsync.fulfilled, (state, action) => {
+				state.orders.push(action.payload);
 			});
 	},
 });

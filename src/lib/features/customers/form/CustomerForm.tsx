@@ -1,60 +1,19 @@
 'use client';
 
 import { useState, useEffect } from 'react';
+import { redirect } from 'next/navigation';
 import { TextField, Button, Box } from '@mui/material';
-import styled from '@emotion/styled';
+import { Formik, Form, FieldArray, FormikHelpers, getIn } from 'formik'
 import RemoveIcon from '@mui/icons-material/Remove';
 import ArrowBack from '@mui/icons-material/ArrowBack';
-import { Formik, Form, FieldArray, FormikHelpers, getIn } from 'formik'
 import * as Yup from 'yup'
-import { configureIdxDB, addData, findOneData, updateData } from '@/lib/db/idxdb';
-import { Customer, Vehicle, Stores } from '@/lib/core/entities';
-import dateParseBr from '@/lib/utils/date';
+import { ulid } from "ulidx";
 import Anchor from '@/lib/common/components/Link';
-
-const Container = styled.div`
-  display: flex;
-  flex-direction: column;
-  justify-content: space-between;
-  align-items: stretch;
-  width: 70%;
-  height: 100%;
-  padding: 24px auto;
-  gap: 12px;
-
-  @media (max-width: 768px) {
-    width: 100%;
-  }
-`;
-
-const ButtonContainer = styled.div`
-  display: flex;
-  justify-content: flex-end;
-`;
-
-const FlexContainer = styled.div`
-display: flex;
-flex-direction: column;
-@media (min-width: 640px) {
-  flex-direction: row;
-  gap: 48px;
-  width: 100%;
-}
-`;
-
-const GridContainer = styled.div`
-  display: grid;
-  grid-template-columns: repeat(3, 1fr);
-  gap: 24px;
-
-  @media (max-width: 768px) {
-    grid-template-columns: repeat(2, 1fr);
-  }
-
-  @media (max-width: 600px) {
-    grid-template-columns: repeat(1, 1fr);
-  }
-`;
+import {  ButtonContainer, Container, FlexContainer, GridContainer} from './styles';
+import { useAppDispatch, useAppSelector } from '@/lib/store';
+import { addCustomer, updateCustomer } from '../customersSlice';
+import { Vehicle } from '@/lib/db/idb';
+import { addVehicle, updateVehicle } from '../../vehicles/vehicleSlice';
 
 interface UrlParams {
   id: string;
@@ -70,94 +29,79 @@ interface CustomerFormValues {
     model?: string;
     year?: string;
     color?: string;
+    variant?: string;
     licensePlate?: string;
   }[];
 }
 
+function parseStringToNumber(value: string | undefined) {
+  return value ? parseInt(value) : 0;
+}
 
 export default function CustomerForm(props: Readonly<UrlParams>) {
+  const dispatch = useAppDispatch();
+  const vehiclesState = useAppSelector((state) => state.vehicles);
+  const customersState = useAppSelector((state) => state.customers);
   const { id } = props;
-  const [isDBReady, setIsDBReady] = useState<boolean>(false);
   const [error, setError] = useState<string | null>(null);
+  const { data, loading } = useAppSelector((state) => state.customerForm);
   const [formCustomerValue, setFormCustomerValue] = useState<CustomerFormValues>({
     name: '',
     email: '',
-    taxpayerRegistration: '',
-    phone: '',
+    taxpayerRegistration: "",
+    phone: "",
     vehicles: [
       {
         brand: '',
         model: '',
         year: '',
         color: '',
+        variant: '',
         licensePlate: '',
       }
     ]
   })
 
-  const timestamp = dateParseBr(new Date());
-  //const handleInitDB = async () => {
-  //  const status = await initDB();
-  //  setIsDBReady(status);
-  //};
-
   const handleAddCustomer = async (values: CustomerFormValues) => {
     const { name, email, taxpayerRegistration, phone, vehicles } = values;
-    const customerId = self.crypto.randomUUID();
-    const vehicleId = self.crypto.randomUUID();
-    try {
-      await addData(Stores.Customers, { customerId, name, email, taxpayerRegistration, phone, createdAt: timestamp, updateAt: null });
-      if (vehicles.length > 0) {
-        for(const vehicle of vehicles) {
-          await addData(Stores.Vehicles, { vehicleId, ...vehicle, customerId, createdAt: timestamp, updateAt: null });
-        }
-      }
-    } catch (err: unknown) {
-      if (err instanceof Error) {
-        console.error(err.message);
-        setError(err.message);
-      } else {
-        setError('Something went wrong');
+    const phoneNumber = parseStringToNumber(phone);
+    const taxpayerRegistrationNumber = parseStringToNumber(taxpayerRegistration);
+    const customerId = ulid();
+    dispatch(addCustomer({ id: customerId, name, email, phone: phoneNumber, taxpayerRegistration: taxpayerRegistrationNumber, updatedAt: null }));
+    if (vehicles.length > 0) {
+      for(const vehicle of vehicles) {
+        const vehicleId = ulid();
+        const { brand, model, year, color, variant, licensePlate } = vehicle;
+        const vehicleData = {
+          id: vehicleId, brand: brand ?? '',  model: model ?? '',  year: year ?? 0,  color: color ?? '',  variant: variant ?? '', licensePlate: licensePlate ?? '', driverId: customerId, updatedAt: null
+        } as Vehicle;
+        dispatch(addVehicle(vehicleData));
       }
     }
   };
 
-  const handleEditCustomer = async (values: CustomerFormValues) => {
+  const handleEditCustomer = (values: CustomerFormValues) => {
     const { name, email, taxpayerRegistration, phone, vehicles } = values;
-    try {
-      await updateData(Stores.Customers, id, { name, email, taxpayerRegistration, phone, vehicles, updateAt: timestamp });
-    } catch (err: unknown) {
-      if (err instanceof Error) {
-        console.error(err.message);
-        setError(err.message);
-      } else {
-        setError('Something went wrong');
+    const phoneNumber = parseStringToNumber(phone);
+    const taxpayerRegistrationNumber = parseStringToNumber(taxpayerRegistration);
+    dispatch(updateCustomer({id, name, email, taxpayerRegistration: taxpayerRegistrationNumber, phone: phoneNumber, updatedAt: new Date().getTime()}));
+    if (vehicles.length > 0) {
+      for(const vehicle of vehicles) {
+        if (!vehicle.licensePlate) return console.error('License plate is required');
+        const vehicleState =  vehiclesState.entities[vehicle.licensePlate];
+        const { brand, model, year, color, variant, licensePlate } = vehicleState;
+        const vehicleData = {
+          id: vehicleState.id, brand: brand ?? '',  model: model ?? '',  year: year ?? 0,  color: color ?? '',  variant: variant ?? '', licensePlate: licensePlate ?? '', driverId: id, updatedAt: null
+        } as Vehicle;
+        dispatch(updateVehicle(vehicleData));
       }
     }
   }
 
-  const handleFindOne = async () => {
-    try {
-      if (id) {
-        return await findOneData<Customer>(Stores.Customers, id);
-      }
-    } catch (err: unknown) {
-      if (err instanceof Error) {
-        console.error(err.message);
-        setError(err.message);
-      } else {
-        setError('Something went wrong');
-      }
-    }
-  };
-
-  const handleFillForm = async () => {
-    // if (!isDBReady) {
-    //   await handleInitDB();
-    // }
+  const handleFillForm = () => {
     if (id) {
-      const drivers = await handleFindOne()
-      setFormCustomerValue(drivers as unknown as CustomerFormValues);
+      const driver = customersState.entities[id];
+      setFormCustomerValue(driver as unknown as CustomerFormValues);
     }
   }
     
@@ -197,17 +141,13 @@ export default function CustomerForm(props: Readonly<UrlParams>) {
   })
 
   const handleSubmit = async (values: CustomerFormValues, { setSubmitting }: FormikHelpers<CustomerFormValues>) => {
-    // await handleInitDB();
-    // if (!isDBReady) {
-    //   await handleInitDB();
-    // }
     if (id) {
       handleEditCustomer(values);
     } else {
       handleAddCustomer(values);
     }
     setSubmitting(false);
-    window.location.replace('/motoristas');
+    redirect('/motoristas');
   }
 
   return (

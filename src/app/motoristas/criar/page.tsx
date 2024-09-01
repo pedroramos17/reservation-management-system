@@ -1,7 +1,7 @@
-import DriverForm from '@/lib/features/customer/form/DriverForm';
+import CustomerForm from '@/lib/features/customers/form/CustomerForm';
 
 export default function CreateDriver() {
   return (
-    <DriverForm id={''} />
+    <CustomerForm id={''} />
   )
 }

@@ -22,7 +22,7 @@ import { Driver, Gateway } from '@/lib/utils/db';
 import dateParseBr from '@/lib/utils/date';
 import { useAppDispatch, useAppSelector } from "@/lib/common/hooks/hooks";
 import { getGateways } from '@/lib/features/gateways/gatewaySlice';
-import { getDrivers } from "../../customer/driversSlice";
+import { getDrivers } from "../../customers/driversSlice";
 import mergeGatewaysWithDrivers from "../../utils";
 import fetchFilteredDrivers from "@/lib/utils/search";
 
