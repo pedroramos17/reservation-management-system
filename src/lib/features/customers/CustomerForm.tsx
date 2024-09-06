@@ -1,107 +1,88 @@
 'use client';
 
-import { useEffect, useState } from 'react';
+import { useCallback, useEffect, useState } from 'react';
 import { useRouter } from 'next/navigation';
 import { TextField, Button, Box } from '@mui/material';
 import { Formik, Form, FieldArray, FormikHelpers, getIn } from 'formik'
 import RemoveIcon from '@mui/icons-material/Remove';
 import ArrowBack from '@mui/icons-material/ArrowBack';
 import * as Yup from 'yup'
-import { ulid } from "ulidx";
 import Anchor from '@/lib/common/components/Anchor';
-import {  ButtonContainer, Container, FlexContainer, GridContainer} from './styles';
-import { useAppDispatch, useAppSelector } from '@/lib/store';
-import { addCustomer, getCustomers, updateCustomer } from '../customersSlice';
+import { ButtonContainer, Container, FlexContainer, GridContainer } from './customerForm.styles';
+import { useAppSelector } from '@/lib/store';
+import { useCustomerForm } from './useCustomerForm';
+import { selectCustomerById, selectVehiclesByCustomerId } from './customersSlice';
 import { Vehicle } from '@/lib/db/idb';
-import { addVehicle, getVehicles, updateVehicle } from '../../vehicles/vehicleSlice';
-import { CustomerFormValues } from "./types";
-import { useCustomerFormInitialization } from './useCustomerFormInitialization';
-import useMergeCustomerWithVehicles from './useMergeCustomerWithVehicles';
 
 interface UrlParams {
   id: string;
 };
 
-function parseStringToNumberOrNull(value: string | undefined) {
-  return value ? parseInt(value) : null;
+export interface CustomerFormValues {
+	name: string;
+	email: string;
+	taxpayerRegistration: string;
+	phone: string;
+	vehicles: {
+		id: string;
+		brand: string;
+		model: string;
+		year: string;
+		color: string;
+		variant: string;
+		licensePlate: string;
+	}[];
+}
+
+function parseNumberOrNullToString(value: number | null) {
+	return value ? String(value) : "";
 }
 
 export default function CustomerForm(props: Readonly<UrlParams>) {
   const { id } = props;
-  const vehiclesState = useAppSelector((state) => state.vehicles);
-	const customersState = useAppSelector((state) => state.customers);
-	const customer = customersState.entities[id];
-	const vehicles = Object.values(vehiclesState.entities);
   const router = useRouter()
-  const dispatch = useAppDispatch();
   const [error, setError] = useState<string | null>(null);
-  const customerWithVehicles = useMergeCustomerWithVehicles(customer, vehicles);
-  const formData = useCustomerFormInitialization(customerWithVehicles);
-
-  console.log('customerWithVehicles', customerWithVehicles)
-
-  useEffect(() => {
-    dispatch(getVehicles());
-    dispatch(getCustomers());
-  }, [dispatch]);
-
-  const handleAddCustomer = (values: CustomerFormValues) => {
-    const { name, email, taxpayerRegistration, phone, vehicles } = values;
-    const phoneNumber = parseStringToNumberOrNull(phone);
-    const taxpayerRegistrationNumber = parseInt(taxpayerRegistration);
-    const customerId = ulid();
-    dispatch(addCustomer({ id: customerId, name, email, phone: phoneNumber, taxpayerRegistration: taxpayerRegistrationNumber, updatedAt: null }));
-    if (vehicles.length > 0) {
-      for(const vehicle of vehicles) {
-        const vehicleId = ulid();
-        const { brand, model, year, color, variant, licensePlate } = vehicle;
-        const vehicleData = {
-          id: vehicleId, brand: brand ?? '',  model: model ?? '',  year: parseStringToNumberOrNull(year),  color: color ?? '',  variant: variant ?? '', licensePlate: licensePlate ?? '', customerId, updatedAt: null
-        } as Vehicle;
-        dispatch(addVehicle(vehicleData));
-      }
-    }
-  };
-
-  const handleEditCustomer = (values: CustomerFormValues) => {
-    const { name, email, taxpayerRegistration, phone, vehicles } = values;
-    const phoneNumber = parseStringToNumberOrNull(phone);
-    const taxpayerRegistrationNumber = parseInt(taxpayerRegistration);
-    dispatch(updateCustomer({id, name, email, taxpayerRegistration: taxpayerRegistrationNumber, phone: phoneNumber, updatedAt: new Date().getTime()}));
-    for(const vehicle of vehicles) {
-      if (!vehicle.licensePlate) {
-        setError(`Placa do carro ${vehicle.licensePlate} não encontrada`);
-        return console.error('License plate not found');
-      };
-      const { id, brand, model, year, color, variant, licensePlate } = vehicle;
-      const vehicleData = {
-        id: vehicle.id, brand: brand ?? '',  model: model ?? '',  year: parseStringToNumberOrNull(year),  color: color ?? '',  variant: variant ?? '', licensePlate: licensePlate ?? '', customerId: id, updatedAt: new Date().getTime(),
-      } as Vehicle;
-      dispatch(updateVehicle(vehicleData));
-    }
-  }
-
+  const { addCustomer, updateCustomer } = useCustomerForm();
   const initialValues = {
-      name: '',
-      email: '',
-      taxpayerRegistration: '',
-      phone: '',
-      vehicles: [
-        {
-          brand: '',
-          model: '',
-          year: '',
-          color: '',
-          variant: '',
-          licensePlate: '',
-        }
-      ]
+    name: '',
+    email: '',
+    taxpayerRegistration: '',
+    phone: '',
+    vehicles: [
+      {
+        id: '',
+        brand: '',
+        model: '',
+        year: '',
+        color: '',
+        variant: '',
+        licensePlate: '',
+      }
+    ]
+}
+  const [formData, setFormData] = useState<CustomerFormValues>(initialValues);
+  const customer = useAppSelector(state => selectCustomerById(state, id));
+  const customerVehicles: Vehicle[] = useAppSelector(state => selectVehiclesByCustomerId(state, id));
+
+const handleFillForm = useCallback(() => {
+  const { id, name, email, taxpayerRegistration, phone} = customer;
+  const vehicles = customerVehicles.map(vehicle => ({ id: vehicle.id, brand: vehicle.brand, model: vehicle.model, year: parseNumberOrNullToString(vehicle.year), color: vehicle.color, variant: vehicle.variant, licensePlate: vehicle.licensePlate })); 
+  setFormData({ name, email, taxpayerRegistration: parseNumberOrNullToString(taxpayerRegistration), phone: parseNumberOrNullToString(phone), vehicles });
+}, [customer, customerVehicles]);
+
+useEffect(() => {
+  if (id) {
+    handleFillForm();
   }
+}, [handleFillForm, id]);
+
+console.log("vehicles data from selector " + JSON.stringify(customerVehicles));
+console.log("customer by id " + customer);
 
   const validationSchema = Yup.object().shape({
    name: Yup.string().min(2, 'Nome muito curto').trim().required('Nome é obrigatório'),
    email: Yup.string().trim().email('Email inválido').nullable(),
-   taxpayerRegistration: Yup.number().max(99999999999, 'CPF inválido').required('CPF é obrigatório'),
+   taxpayerRegistration: Yup.number().max(99999999999, 'CPF deve ter 11 dígitos').required('CPF é obrigatório'),
     phone: Yup.string().trim().nullable(),
     vehicles: Yup.array().of(
       Yup.object().shape({
@@ -117,9 +98,12 @@ export default function CustomerForm(props: Readonly<UrlParams>) {
 
   const handleSubmit = (values: CustomerFormValues, { setSubmitting }: FormikHelpers<CustomerFormValues>) => {
     if (id) {
-      handleEditCustomer(values);
+      updateCustomer(values, id);
+      console.log("Valores do form edit" + JSON.stringify(values));
+
     } else {
-      handleAddCustomer(values);
+      addCustomer(values);
+      console.log(values);
     }
     setSubmitting(false);
     router.push('/motoristas')
@@ -324,7 +308,3 @@ export default function CustomerForm(props: Readonly<UrlParams>) {
       </Box>
   );
 }
-function initDB() {
-  throw new Error('Function not implemented.');
-}
-

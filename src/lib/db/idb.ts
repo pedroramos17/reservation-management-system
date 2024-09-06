@@ -34,7 +34,7 @@ interface ParkingLotDB extends DBSchema {
 			name: string;
 			email: string;
 			phone: number | null;
-			taxpayerRegistration: number;
+			taxpayerRegistration: number | null;
 			updatedAt: number | null;
 		};
 		indexes: { "by-email": string };

@@ -16,8 +16,9 @@ export function useParkingSlot() {
 		dispatch(initializeFromDB());
 	}, [dispatch]);
 
-	const { slots, openBookings, bookings, orders, status, error } =
-		useAppSelector((state) => state.parkingSlot);
+	const { slots, openBookings, bookings } = useAppSelector(
+		(state) => state.parkingSlot
+	);
 	const reserve = useCallback(
 		(vehicleId: string) => {
 			const index = slots.findIndex((isReserved) => !isReserved);

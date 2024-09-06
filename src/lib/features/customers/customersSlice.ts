@@ -1,51 +1,55 @@
 import {
 	createAsyncThunk,
 	createEntityAdapter,
+	createSelector,
 	createSlice,
+	EntityState,
 } from "@reduxjs/toolkit";
 import {
-	add,
-	update,
-	getAll,
-	remove,
+	getCustomers,
+	setCustomer,
+	removeCustomer,
 } from "@/lib/repositories/customerRepository";
 import type { Customer } from "@/lib/db/idb";
-import { AtLeastOne } from "../utils";
+import { RootState } from "@/lib/store";
+import { selectAllVehicles } from "../vehicles/vehiclesSlice";
 
-type AtLeastOneCustomerField = AtLeastOne<Customer>;
+interface CustomersState extends EntityState<Customer, string> {
+	status: "idle" | "pending" | "succeeded" | "rejected";
+	error: string | null;
+}
 
-const getCustomers = createAsyncThunk("customer/getAll", async () => {
-	const customers = await getAll();
-	return customers;
+const customersAdapter = createEntityAdapter<Customer>();
+
+const initialState: CustomersState = customersAdapter.getInitialState({
+	status: "idle",
+	error: null,
 });
 
-const addCustomer = createAsyncThunk("customer/add", async (data: Customer) => {
-	return await add(data);
-});
-
-const updateCustomer = createAsyncThunk(
-	"customer/update",
-	async (updatedData: AtLeastOneCustomerField & { id: string }) => {
-		return (await update(updatedData)) as AtLeastOneCustomerField;
+const getCustomersAsync = createAsyncThunk(
+	"customer/getCustomers",
+	async () => {
+		const customers = await getCustomers();
+		console.log("getCustomers", customers);
+		return customers;
 	}
 );
 
-const deleteCustomer = createAsyncThunk(
+const setCustomerAsync = createAsyncThunk(
+	"customer/setCustomer",
+	async (customer: Customer) => {
+		await setCustomer(customer);
+		return customer;
+	}
+);
+
+const deleteCustomerAsync = createAsyncThunk(
 	"customer/delete",
-	async (id: string) => {
-		await remove(id);
-		return id;
+	async (customerId: string) => {
+		await removeCustomer(customerId);
+		return customerId;
 	}
 );
-
-export const customersAdapter = createEntityAdapter<Customer>();
-
-type Loading = "idle" | "pending" | "succeeded" | "failed";
-
-const initialState = customersAdapter.getInitialState({
-	loading: "idle" as Loading,
-	error: null as string | null,
-});
 
 export const customerSlice = createSlice({
 	name: "customers",
@@ -53,63 +57,64 @@ export const customerSlice = createSlice({
 	reducers: {},
 	extraReducers: (builder) => {
 		builder
-			.addCase(getCustomers.pending, (state) => {
-				state.loading = "pending";
+			.addCase(getCustomersAsync.pending, (state) => {
+				state.status = "pending";
 				state.error = null;
 			})
-			.addCase(getCustomers.fulfilled, (state, { payload }) => {
-				state.loading = "succeeded";
+			.addCase(getCustomersAsync.fulfilled, (state, { payload }) => {
+				state.status = "succeeded";
 				customersAdapter.upsertMany(state, payload);
 			})
-			.addCase(getCustomers.rejected, (state, action) => {
-				state.loading = "failed";
-				state.error = action.error.message ?? "Failed to get customers";
-			})
-			.addCase(addCustomer.pending, (state) => {
-				state.loading = "pending";
-				state.error = null;
-			})
-			.addCase(addCustomer.fulfilled, (state, { payload }) => {
-				state.loading = "succeeded";
-				customersAdapter.addOne(state, payload);
-			})
-			.addCase(addCustomer.rejected, (state, action) => {
-				state.loading = "failed";
-				state.error = action.error.message ?? "Failed to add customer";
-			})
-			.addCase(updateCustomer.pending, (state) => {
-				state.loading = "pending";
-				state.error = null;
-			})
-			.addCase(updateCustomer.fulfilled, (state, { payload }) => {
-				state.loading = "succeeded";
-				const { id, ...changes } = payload;
-				if (id) {
-					customersAdapter.updateOne(state, { id, changes });
-				} else {
-					state.error = "Failed to update customer, id not found";
-				}
-			})
-			.addCase(updateCustomer.rejected, (state, action) => {
-				state.loading = "failed";
+			.addCase(getCustomersAsync.rejected, (state, action) => {
+				state.status = "rejected";
 				state.error =
-					action.error.message ?? "Failed to update customer";
+					action.error.message ?? "Rejected to get customers";
 			})
-			.addCase(deleteCustomer.pending, (state) => {
-				state.loading = "pending";
+			.addCase(setCustomerAsync.pending, (state) => {
+				state.status = "pending";
 				state.error = null;
 			})
-			.addCase(deleteCustomer.fulfilled, (state, { payload }) => {
-				state.loading = "succeeded";
+			.addCase(setCustomerAsync.fulfilled, (state, { payload }) => {
+				state.status = "succeeded";
+				customersAdapter.upsertOne(state, payload);
+			})
+			.addCase(setCustomerAsync.rejected, (state, action) => {
+				state.status = "rejected";
+				state.error =
+					action.error.message ?? "Rejected to add customer";
+			})
+			.addCase(deleteCustomerAsync.pending, (state) => {
+				state.status = "pending";
+				state.error = null;
+			})
+			.addCase(deleteCustomerAsync.fulfilled, (state, { payload }) => {
+				state.status = "succeeded";
 				customersAdapter.removeOne(state, payload);
 			})
-			.addCase(deleteCustomer.rejected, (state, action) => {
-				state.loading = "failed";
+			.addCase(deleteCustomerAsync.rejected, (state, action) => {
+				state.status = "rejected";
 				state.error =
-					action.error.message ?? "Failed to delete customer";
+					action.error.message ?? "Rejected to delete customer";
 			});
 	},
 });
 
-export { getCustomers, addCustomer, updateCustomer, deleteCustomer };
+export { getCustomersAsync, setCustomerAsync, deleteCustomerAsync };
 export default customerSlice.reducer;
+
+export const {
+	selectAll: selectAllCustomers,
+	selectById: selectCustomerById,
+	selectIds: selectCustomerIds,
+} = customersAdapter.getSelectors((state: RootState) => state.customers);
+
+export const selectVehiclesByCustomerId = createSelector(
+	[
+		(state: RootState) => selectAllVehicles(state),
+		(state: RootState, customerId: string) =>
+			selectCustomerById(state, customerId)?.id,
+	],
+	(vehicles, customerId) => {
+		return vehicles.filter((vehicle) => vehicle.customerId === customerId);
+	}
+);

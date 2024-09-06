@@ -1,36 +1,22 @@
 import dbPromise, { Vehicle, VEHICLES } from "../db/idb";
-const getAll = async (): Promise<Vehicle[]> => {
+
+const getVehicles = async (): Promise<Vehicle[]> => {
 	const db = await dbPromise;
 	return db.getAll(VEHICLES);
 };
 
-const getById = async (id: string): Promise<Vehicle | undefined> => {
+const setVehicles = async (vehicles: Vehicle[]) => {
 	const db = await dbPromise;
-	return db.get(VEHICLES, id);
+	const tx = db.transaction(VEHICLES, "readwrite");
+	await Promise.all(vehicles.map((vehicle) => tx.store.put(vehicle)));
+	await tx.done;
 };
 
-const add = async (vehicle: Vehicle): Promise<Vehicle> => {
+const removeVehicles = async (ids: string[]): Promise<void> => {
 	const db = await dbPromise;
-	const id = await db.add(VEHICLES, vehicle);
-	return { ...vehicle, id };
+	const tx = db.transaction(VEHICLES, "readwrite");
+	await Promise.all(ids.map((id) => tx.store.delete(id)));
+	await tx.done;
 };
 
-const update = async (
-	vehicle: Partial<Vehicle> & { id: string }
-): Promise<Vehicle> => {
-	const db = await dbPromise;
-	const existingVehicle = await getById(vehicle.id);
-	if (!existingVehicle) {
-		throw new Error(`Vehicle with id ${vehicle.id} not found`);
-	}
-	const updatedVehicle = { ...existingVehicle, ...vehicle };
-	await db.put(VEHICLES, updatedVehicle);
-	return updatedVehicle;
-};
-
-const remove = async (id: string): Promise<void> => {
-	const db = await dbPromise;
-	await db.delete(VEHICLES, id);
-};
-
-export { getAll, getById, add, update, remove };
+export { getVehicles, setVehicles, removeVehicles };

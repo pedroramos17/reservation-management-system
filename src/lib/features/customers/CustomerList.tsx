@@ -7,7 +7,7 @@ import SearchTool from '@/lib/common/components/SearchTool';
 import { Container, HeaderContainer } from '@/lib/common/components/styles';
 import Search from '@/lib/common/components/Search';
 import { useAppDispatch, useAppSelector } from "@/lib/store"
-import { getCustomers, deleteCustomer } from '@/lib/features/customers/customersSlice';
+import { getCustomersAsync, deleteCustomerAsync } from '@/lib/features/customers/customersSlice';
 import type { Customer } from '@/lib/db/idb';
     
 function fetchFilteredCustomers(query: string, customers: Customer[]|[]) {
@@ -36,9 +36,9 @@ function fetchFilteredCustomers(query: string, customers: Customer[]|[]) {
 interface CustomersProps {
   readonly query: string;
 }
-export default function CustomerPage(props: CustomersProps) {
+export default function CustomerList(props: CustomersProps) {
   const dispatch = useAppDispatch();
-  const { entities , loading, error } = useAppSelector((state) => state.customers)
+  const { entities } = useAppSelector((state) => state.customers)
   const { query } = props
   const customersValues = Object.values(entities)
   const customers = customersValues
@@ -49,11 +49,11 @@ export default function CustomerPage(props: CustomersProps) {
     searchedCustomersIds = response['result'];
   })
   useEffect(() => {
-    dispatch(getCustomers())
+    dispatch(getCustomersAsync())
   }, [dispatch])
 
   const handleDeleteCustomer = (id: string) => {
-      dispatch(deleteCustomer(id))
+      dispatch(deleteCustomerAsync(id))
   }
 
   const handleDeleteSelectedCustomers = async (selected: string[]) => {}

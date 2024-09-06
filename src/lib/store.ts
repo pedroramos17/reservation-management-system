@@ -2,7 +2,7 @@ import { configureStore } from "@reduxjs/toolkit";
 import { useDispatch, useSelector, useStore } from "react-redux";
 import parkingSlotReducer from "@/lib/features/parkingSlot/parkingSlotSlice";
 import customersReducer from "@/lib/features/customers/customersSlice";
-import vehicleReducer from "@/lib/features/vehicles/vehicleSlice";
+import vehicleReducer from "@/lib/features/vehicles/vehiclesSlice";
 
 export const makeStore = () => {
 	return configureStore({
