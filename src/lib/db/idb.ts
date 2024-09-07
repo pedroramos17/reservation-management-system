@@ -52,7 +52,7 @@ interface ParkingLotDB extends DBSchema {
 			customerId: string;
 			updatedAt: number | null;
 		};
-		indexes: { "by-driver": string };
+		indexes: { "by-customer": string };
 	};
 	users: {
 		key: string;
@@ -83,7 +83,7 @@ const dbPromise = openDB<ParkingLotDB>("parSlotMapDB", 1, {
 		const vehicleStore = db.createObjectStore(VEHICLES, {
 			keyPath: "id",
 		});
-		vehicleStore.createIndex("by-driver", "driverId");
+		vehicleStore.createIndex("by-customer", "customerId");
 		const orderStore = db.createObjectStore(ORDERS, {
 			keyPath: "id",
 		});
