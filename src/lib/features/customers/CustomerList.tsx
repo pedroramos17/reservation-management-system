@@ -54,13 +54,8 @@ export default function CustomerList(props: CustomersProps) {
   useEffect(() => {
     dispatch(getCustomersAsync())
   }, [dispatch])
-
-  const customerVehiclesInDB = async (customerId: string) => {
-    const allCustomerVehiclesInDB = await getVehiclesByCustomerId(customerId)
-    return allCustomerVehiclesInDB
-  }
   async function handleDeleteCustomer(customerId: string) {
-        const customerVehicles = await customerVehiclesInDB(customerId);
+        const customerVehicles = await getVehiclesByCustomerId(customerId)
         const hasVehicles = customerVehicles && customerVehicles.length > 0;
         if (hasVehicles) {
           const vehicleIds = customerVehicles.map(vehicle => vehicle.id);
