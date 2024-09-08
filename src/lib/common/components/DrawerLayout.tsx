@@ -139,14 +139,14 @@ export default function DrawerLayout({ children }: any) {
         </DrawerHeader>
         <Divider />
         <List>
-          {['Motoristas', 'Portaria', 'Perfil'].map((text, index) => {
+          {['Motoristas', 'Estacionamento', 'Perfil'].map((text, index) => {
             let link = '';
             if (index == 0) {
               link = '/motoristas';
             } else if (index == 1) {
-              link = '/portaria';
+              link = '/estacionamento';
             } else if (index == 2) {
-              link = '/perfil';
+              link = '/perfil/editar';
             }
             return (
               <ListItem key={text} disablePadding sx={{ display: 'block' }}>
@@ -170,7 +170,7 @@ export default function DrawerLayout({ children }: any) {
                       </Anchor>
                     )}
                     {index === 1 && (
-                      <Anchor href="/portaria">
+                      <Anchor href="/estacionamento">
                         <GateUpIcon />
                       </Anchor>
                     )}
