@@ -9,10 +9,11 @@ import ArrowBack from '@mui/icons-material/ArrowBack';
 import * as Yup from 'yup'
 import Anchor from '@/lib/common/components/Anchor';
 import { ButtonContainer, Container, FlexContainer, GridContainer } from './customerForm.styles';
-import { useAppSelector } from '@/lib/store';
+import { useAppDispatch, useAppSelector } from '@/lib/store';
 import { useCustomerForm } from './useCustomerForm';
-import { selectCustomerById, selectVehiclesByCustomerId } from './customersSlice';
+import { getCustomersAsync, selectCustomerById, selectVehiclesByCustomerId } from './customersSlice';
 import { Vehicle } from '@/lib/db/idb';
+import { getVehiclesAsync } from '../vehicles/vehiclesSlice';
 
 interface UrlParams {
   id: string;
@@ -39,6 +40,7 @@ type vehicleFormType = Omit<Vehicle, 'uptadedAt' | 'customerId'>;
 export default function CustomerForm(props: Readonly<UrlParams>) {
   const { id } = props;
   const router = useRouter()
+  const dispatch = useAppDispatch();
   const [vehiclesRemoved, setVehiclesRemoved] = useState<vehicleFormType[]>([]);
   const { addCustomer, updateCustomer } = useCustomerForm();
   const initialValues = {
@@ -72,7 +74,10 @@ const handleFillForm = useCallback(() => {
     setFormData({ name, email, taxpayerRegistration: parseNumberOrNullToString(taxpayerRegistration), phone: parseNumberOrNullToString(phone), vehicles });  
   }
 }, [customerVehicles, customer]);
-
+useEffect(() => {
+  dispatch(getCustomersAsync());
+  dispatch(getVehiclesAsync());
+}, [dispatch]);
 useEffect(() => {
   if (id) {
     handleFillForm();
