@@ -9,6 +9,8 @@ import Search from '@/lib/common/components/Search';
 import { useAppDispatch, useAppSelector } from "@/lib/store"
 import { getCustomersAsync, deleteCustomerAsync } from '@/lib/features/customers/customersSlice';
 import type { Customer } from '@/lib/db/idb';
+import { deleteVehiclesAsync } from '../vehicles/vehiclesSlice';
+import { getVehiclesByCustomerId } from '@/lib/repositories/vehicleRepository';
     
 function fetchFilteredCustomers(query: string, customers: Customer[]|[]) {
   const CustomerDocument = new FlexSearch.Document({
@@ -36,14 +38,15 @@ function fetchFilteredCustomers(query: string, customers: Customer[]|[]) {
 interface CustomersProps {
   readonly query: string;
 }
+
 export default function CustomerList(props: CustomersProps) {
   const dispatch = useAppDispatch();
-  const { entities } = useAppSelector((state) => state.customers)
-  const { query } = props
-  const customersValues = Object.values(entities)
-  const customers = customersValues
+  const { entities } = useAppSelector((state) => state.customers);
+  const { query } = props;
+  const customersValues = Object.values(entities);
+  const customers = customersValues;
   const customersResponse = fetchFilteredCustomers(query, customers);
-
+  
   let searchedCustomersIds: any = [];
   customersResponse.forEach((response) => {
     searchedCustomersIds = response['result'];
@@ -52,10 +55,21 @@ export default function CustomerList(props: CustomersProps) {
     dispatch(getCustomersAsync())
   }, [dispatch])
 
-  const handleDeleteCustomer = (id: string) => {
-      dispatch(deleteCustomerAsync(id))
+  const customerVehiclesInDB = async (customerId: string) => {
+    const allCustomerVehiclesInDB = await getVehiclesByCustomerId(customerId)
+    return allCustomerVehiclesInDB
   }
-
+  async function handleDeleteCustomer(customerId: string) {
+        const customerVehicles = await customerVehiclesInDB(customerId);
+        const hasVehicles = customerVehicles && customerVehicles.length > 0;
+        if (hasVehicles) {
+          const vehicleIds = customerVehicles.map(vehicle => vehicle.id);
+          console.log("vehicles: ", customerVehicles)
+          console.log("vehicle ids: ", vehicleIds)
+          await dispatch(deleteVehiclesAsync(vehicleIds));
+        }
+        await dispatch(deleteCustomerAsync(customerId));
+  };
   const handleDeleteSelectedCustomers = async (selected: string[]) => {}
 
   return (
