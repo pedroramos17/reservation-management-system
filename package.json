@@ -28,6 +28,7 @@
     "notistack": "^3.0.1",
     "react": "^18",
     "react-dom": "^18",
+    "react-imask": "^7.6.1",
     "react-redux": "^9.1.2",
     "ulidx": "^2.4.0",
     "use-debounce": "^10.0.1",
