@@ -30,7 +30,6 @@ const getCustomersAsync = createAsyncThunk(
 	"customer/getCustomers",
 	async () => {
 		const customers = await getCustomers();
-		console.log("getCustomers", customers);
 		return customers;
 	}
 );
