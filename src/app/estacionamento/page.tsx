@@ -1,11 +1,11 @@
-import ParkingSlotPage from "@/lib/features/parkingSlot/ParkingSlot";
+import BookingPage from "@/lib/features/bookings/Booking";
 
-interface ParkingLotPageProps {
+interface BookingPageProps {
     readonly searchParams?: {
       query?: string;
     };
   }
-export default function Page({ searchParams }: ParkingLotPageProps) {
+export default function Page({ searchParams }: BookingPageProps) {
        const query = searchParams?.query ?? '';
-    return <ParkingSlotPage query={query} />;
+    return <BookingPage query={query} />;
 }

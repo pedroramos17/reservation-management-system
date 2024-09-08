@@ -1,4 +1,3 @@
-// src/features/parkingSlot/parkingSlotSlice.ts
 import { createSlice, createAsyncThunk } from "@reduxjs/toolkit";
 import type { Booking, Order } from "@/lib/db/idb";
 import {
@@ -10,12 +9,12 @@ import {
 	setSlots,
 	addOrder,
 	getOrders,
-} from "@/lib/repositories/parkingSlotRepository";
+} from "@/lib/repositories/bookingRepository";
 interface OpenBookings {
 	slotIndex: number;
 	vehicleId: string | null;
 }
-interface ParkingSlotState {
+interface BookingState {
 	slots: boolean[];
 	openBookings: OpenBookings[];
 	bookings: Booking[];
@@ -23,7 +22,7 @@ interface ParkingSlotState {
 	status: "idle" | "loading" | "failed";
 	error: string | null;
 }
-const initialState: ParkingSlotState = {
+const initialState: BookingState = {
 	slots: [],
 	openBookings: [],
 	bookings: [],
@@ -33,7 +32,7 @@ const initialState: ParkingSlotState = {
 };
 
 export const initializeFromDB = createAsyncThunk(
-	"parkingSlot/initializeFromDB",
+	"booking/initializeFromDB",
 	async () => {
 		const [slots, openBookings, bookings, orders] = await Promise.all([
 			getSlots(),
@@ -52,7 +51,7 @@ export const initializeFromDB = createAsyncThunk(
 );
 
 export const initializeSlotsAsync = createAsyncThunk(
-	"parkingSlot/initializeSlots",
+	"booking/initializeSlots",
 	async (slotCount: number) => {
 		let slots = await getSlots();
 		if (slots.length !== slotCount) {
@@ -71,7 +70,7 @@ type ReserveProps = {
 	newOpenBookings: OpenBookings[];
 };
 export const reserveSlotAsync = createAsyncThunk(
-	"parkingSlot/reserveSlot",
+	"booking/reserveSlot",
 	async ({ newSlots, newBooking, index, newOpenBookings }: ReserveProps) => {
 		await Promise.all([setSlots(newSlots), addBooking(newBooking)]);
 		return { index, newOpenBookings, newBooking };
@@ -85,7 +84,7 @@ type FreeSlotProps = {
 	newOpenBookings: OpenBookings[];
 };
 export const freeSlotAsync = createAsyncThunk(
-	"parkingSlot/freeSlot",
+	"booking/freeSlot",
 	async ({
 		newSlots,
 		closedBooking,
@@ -102,7 +101,7 @@ export const freeSlotAsync = createAsyncThunk(
 );
 
 export const createOrderAsync = createAsyncThunk(
-	"parkingSlot/createOrder",
+	"booking/createOrder",
 	async (order: Order) => {
 		await addOrder(order);
 
@@ -110,8 +109,8 @@ export const createOrderAsync = createAsyncThunk(
 	}
 );
 
-export const parkingSlotSlice = createSlice({
-	name: "parkingSlot",
+export const bookingSlice = createSlice({
+	name: "booking",
 	initialState,
 	reducers: {},
 	extraReducers: (builder) => {
@@ -156,4 +155,4 @@ export const parkingSlotSlice = createSlice({
 	},
 });
 
-export default parkingSlotSlice.reducer;
+export default bookingSlice.reducer;

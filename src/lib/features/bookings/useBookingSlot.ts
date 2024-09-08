@@ -4,12 +4,12 @@ import {
 	freeSlotAsync,
 	initializeFromDB,
 	createOrderAsync,
-} from "./parkingSlotSlice";
+} from "./bookingSlice";
 import { useAppDispatch, useAppSelector } from "@/lib/store";
 import { Order, Booking, ChargeByType } from "@/lib/db/idb";
 import chargingStrategy from "./chargingStrategy";
 
-export function useParkingSlot() {
+export function useBookingSlot() {
 	const dispatch = useAppDispatch();
 
 	useEffect(() => {
@@ -17,7 +17,7 @@ export function useParkingSlot() {
 	}, [dispatch]);
 
 	const { slots, openBookings, bookings } = useAppSelector(
-		(state) => state.parkingSlot
+		(state) => state.bookings
 	);
 	const reserve = useCallback(
 		(vehicleId: string) => {

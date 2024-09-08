@@ -2,13 +2,13 @@
 
 import React, { useEffect, useState } from 'react';
 import FlexSearch from 'flexsearch';
-import { useParkingSlot } from './useParkingSlot';
-import { initializeSlotsAsync } from './parkingSlotSlice';
+import { useBookingSlot } from './useBookingSlot';
+import { initializeSlotsAsync } from './bookingSlice';
 import { useAppDispatch, useAppSelector } from '@/lib/store';
 import { Vehicle } from '@/lib/db/idb';
 import { getVehiclesAsync, selectAllVehicles } from '../vehicles/vehiclesSlice';
 
-interface ParkingLotProps {
+interface BookingPageProps {
   readonly query: string;
 }
 
@@ -38,12 +38,12 @@ function fetchFilteredVehicles(query: string, vehicles: Vehicle[]|[]) {
   return results;
 }
 
-export default function ParkingSlotPage(props: ParkingLotProps) {
+export default function BookingPage(props: BookingPageProps) {
   const dispatch = useAppDispatch();
   const { slots, openBookings, bookings, orders } =
-  useAppSelector((state) => state.parkingSlot);
+  useAppSelector((state) => state.bookings);
   const vehicles = useAppSelector((state) => selectAllVehicles(state));
-  const { reserveSlot, freeSlot, chargingSelector, createOrder, howLongItTookForTheVehicleToLeaveInMinutes } = useParkingSlot();
+  const { reserveSlot, freeSlot, chargingSelector, createOrder, howLongItTookForTheVehicleToLeaveInMinutes } = useBookingSlot();
   const [vehicleId, setVehicleId] = useState('');
   const { query } = props;
   const vehiclesResponse = fetchFilteredVehicles(query, vehicles);
