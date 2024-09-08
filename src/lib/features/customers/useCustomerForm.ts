@@ -1,28 +1,21 @@
 import { useCallback, useEffect } from "react";
 import { getCustomersAsync, setCustomerAsync } from "./customersSlice";
-import { getVehiclesAsync, setVehiclesAsync } from "../vehicles/vehiclesSlice";
+import {
+	deleteVehiclesAsync,
+	getVehiclesAsync,
+	setVehiclesAsync,
+} from "../vehicles/vehiclesSlice";
 import { useAppDispatch } from "@/lib/store";
 import { Customer, Vehicle } from "@/lib/db/idb";
 import { ulid } from "ulidx";
 import { CustomerFormValues } from "./CustomerForm";
+import { getVehiclesByCustomerId } from "@/lib/repositories/vehicleRepository";
 
 function parseStringToNumberOrNull(value: string | undefined) {
-	/**
-	 * Tries to parse a given string as a number, returning null if it
-	 * cannot be parsed.
-	 *
-	 * @param {string|undefined} value The value to parse.
-	 * @returns {number|null} The parsed number, or null.
-	 */
 	return value ? parseInt(value) : null;
 }
 export function useCustomerForm() {
 	const dispatch = useAppDispatch();
-
-	useEffect(() => {
-		dispatch(getVehiclesAsync());
-		dispatch(getCustomersAsync());
-	}, [dispatch]);
 
 	const addCustomer = useCallback(
 		(values: CustomerFormValues) => {
@@ -64,15 +57,14 @@ export function useCustomerForm() {
 					} as Vehicle;
 					vehiclesArray.push(newVehicle);
 				}
-				dispatch(setCustomerAsync(newCustomer));
-				dispatch(setVehiclesAsync(vehiclesArray));
+				Promise.resolve(dispatch(setVehiclesAsync(vehiclesArray)));
 			}
+			Promise.resolve(dispatch(setCustomerAsync(newCustomer)));
 		},
 		[dispatch]
 	);
-
 	const updateCustomer = useCallback(
-		(values: CustomerFormValues, customerId: string) => {
+		async (values: CustomerFormValues, customerId: string) => {
 			const { name, email, taxpayerRegistration, phone, vehicles } =
 				values;
 			const updatedCustomer: Customer = {
@@ -84,28 +76,40 @@ export function useCustomerForm() {
 				phone: parseStringToNumberOrNull(phone),
 				updatedAt: new Date().getTime(),
 			};
-			if (vehicles.length > 0) {
-				let updatedVehicles: Vehicle[] = [];
-				for (const vehicle of vehicles) {
-					const vehicleData = {
-						id: vehicle?.id ?? ulid(),
-						brand: vehicle?.brand ?? "",
-						model: vehicle?.model ?? "",
-						year: parseStringToNumberOrNull(vehicle?.year),
-						color: vehicle?.color ?? "",
-						variant: vehicle?.variant ?? "",
-						licensePlate: vehicle?.licensePlate ?? "",
-						customerId: updatedCustomer.id,
-						updatedAt:
-							vehicle?.id === undefined
-								? null
-								: new Date().getTime(),
-					} as Vehicle;
-					updatedVehicles.push(vehicleData);
-				}
-				dispatch(setVehiclesAsync(updatedVehicles));
+
+			let updatedVehicles: Vehicle[] = [];
+			for (const vehicle of vehicles) {
+				const vehicleData = {
+					id: vehicle?.id ?? ulid(),
+					brand: vehicle?.brand ?? "",
+					model: vehicle?.model ?? "",
+					year: parseStringToNumberOrNull(vehicle?.year),
+					color: vehicle?.color ?? "",
+					variant: vehicle?.variant ?? "",
+					licensePlate: vehicle?.licensePlate ?? "",
+					customerId: updatedCustomer.id,
+					updatedAt:
+						vehicle?.id === undefined ? null : new Date().getTime(),
+				} as Vehicle;
+				updatedVehicles.push(vehicleData);
 			}
-			dispatch(setCustomerAsync(updatedCustomer));
+			console.log("updatedVehicles: ", updatedVehicles);
+			const customerVehicles = await getVehiclesByCustomerId(customerId);
+			console.log("customerVehicles: ", customerVehicles);
+			const vehicleIdsDeleted = customerVehicles
+				.map((vehicle) => vehicle.id)
+				.filter((id) => {
+					return !updatedVehicles.some(
+						(vehicle) => vehicle.id === id
+					);
+				});
+			console.log("customerVehicles: ", vehicleIdsDeleted);
+
+			Promise.all([
+				dispatch(deleteVehiclesAsync(vehicleIdsDeleted)),
+				dispatch(setVehiclesAsync(updatedVehicles)),
+			]);
+			Promise.resolve(dispatch(setCustomerAsync(updatedCustomer)));
 		},
 		[dispatch]
 	);
