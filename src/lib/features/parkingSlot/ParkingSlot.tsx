@@ -5,16 +5,21 @@ import { useParkingSlot } from './useParkingSlot';
 import { initializeSlotsAsync } from './parkingSlotSlice';
 import { useAppDispatch, useAppSelector } from '@/lib/store';
 
-export default function ParkingSlotPage() {
+interface ParkingLotProps {
+  readonly query: string;
+}
+
+export default function ParkingSlotPage(props: ParkingLotProps) {
   const dispatch = useAppDispatch();
   const { slots, openBookings, bookings, orders } =
   useAppSelector((state) => state.parkingSlot);
   const { reserveSlot, freeSlot, chargingSelector, createOrder, howLongItTookForTheVehicleToLeaveInMinutes } = useParkingSlot();
   const [vehicleId, setVehicleId] = useState('');
+  const { query } = props;
 
   useEffect(() => {
-		dispatch(initializeSlotsAsync(10));
-	}, [dispatch]);
+    dispatch(initializeSlotsAsync(10));
+  }, [dispatch]);
 
   const handleReserve = async () => {
     if (vehicleId) {
@@ -59,13 +64,14 @@ export default function ParkingSlotPage() {
 
   return (
     <div>
+      <h1>Estacionamento</h1>
       <input
         type="text"
         value={vehicleId}
         onChange={(e) => setVehicleId(e.target.value)}
         placeholder="Enter vehicle ID"
       />
-      <button onClick={handleReserve}>Reserve Slot</button>
+      <button onClick={handleReserve}>Reservar vaga</button>
       {slots.map((slot, index) => (
         <div key={index}>
           <button onClick={() => handleFree(index)} disabled={!slot}>
@@ -75,7 +81,7 @@ export default function ParkingSlotPage() {
           </button>
         </div>
       ))}
-      <h3>Booking History</h3>
+      <h3>Histórico de reservas</h3>
       <ul>
         {bookings.map((booking) => {
           return (
@@ -90,7 +96,7 @@ export default function ParkingSlotPage() {
       </ul>
       {orders && (
         <div>
-          <h3>Current Orders</h3>
+          <h3>Últimos pedidos</h3>
           <ul>
             {
               orders.map((order) => {

@@ -1,11 +1,11 @@
 import ParkingSlotPage from "@/lib/features/parkingSlot/ParkingSlot";
 
-export default function Page() {
-       
-    return (
-        <div>
-            <h1>Estacionamento</h1>
-            <ParkingSlotPage />
-        </div>
-    )
+interface ParkingLotPageProps {
+    readonly searchParams?: {
+      query?: string;
+    };
+  }
+export default function Page({ searchParams }: ParkingLotPageProps) {
+       const query = searchParams?.query ?? '';
+    return <ParkingSlotPage query={query} />;
 }
