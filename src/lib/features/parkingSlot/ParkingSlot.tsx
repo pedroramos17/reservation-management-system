@@ -1,21 +1,63 @@
 'use client';
 
 import React, { useEffect, useState } from 'react';
+import FlexSearch from 'flexsearch';
 import { useParkingSlot } from './useParkingSlot';
 import { initializeSlotsAsync } from './parkingSlotSlice';
 import { useAppDispatch, useAppSelector } from '@/lib/store';
+import { Vehicle } from '@/lib/db/idb';
+import { getVehiclesAsync, selectAllVehicles } from '../vehicles/vehiclesSlice';
 
 interface ParkingLotProps {
   readonly query: string;
+}
+
+function fetchFilteredVehicles(query: string, vehicles: Vehicle[]|[]) {
+  const VehicleDocument = new FlexSearch.Document({
+    document: {
+      id: 'id',
+      index: ['description', 'licensePlate', 'customerId'],
+    },
+    charset: 'latin:advanced',
+    tokenize: 'reverse',
+    cache: true,
+    preset: 'performance',
+  })
+
+  for (const vehicle of vehicles) {
+    VehicleDocument.add({
+      id: vehicle.id,
+      description: vehicle.brand + ' ' + vehicle.model + ' ' + vehicle.year + ' ' + vehicle.color + ' ' + vehicle.variant,
+      licensePlate: vehicle.licensePlate,
+      customerId: vehicle.customerId,
+    })
+  }
+    
+  const results = VehicleDocument.search(query, { suggest: true });
+
+  return results;
 }
 
 export default function ParkingSlotPage(props: ParkingLotProps) {
   const dispatch = useAppDispatch();
   const { slots, openBookings, bookings, orders } =
   useAppSelector((state) => state.parkingSlot);
+  const vehicles = useAppSelector((state) => selectAllVehicles(state));
   const { reserveSlot, freeSlot, chargingSelector, createOrder, howLongItTookForTheVehicleToLeaveInMinutes } = useParkingSlot();
   const [vehicleId, setVehicleId] = useState('');
   const { query } = props;
+  const vehiclesResponse = fetchFilteredVehicles(query, vehicles);
+
+  let searchedVehiclesIds: any = [];
+  vehiclesResponse.forEach((response) => {
+    searchedVehiclesIds = response['result'];
+  })
+
+  const rows = query ? vehicles.filter((vehicle) => searchedVehiclesIds.includes(vehicle.id)) : vehicles;
+
+  useEffect(() => {
+    dispatch(getVehiclesAsync())
+  }, [dispatch])
 
   useEffect(() => {
     dispatch(initializeSlotsAsync(10));
