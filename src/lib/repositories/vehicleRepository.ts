@@ -5,6 +5,14 @@ const getVehicles = async (): Promise<Vehicle[]> => {
 	return db.getAll(VEHICLES);
 };
 
+const getVehiclesByCustomerId = async (customerId: string) => {
+	const db = await dbPromise;
+	const tx = db.transaction(VEHICLES, "readonly");
+	const index = tx.store.index("by-customer");
+	const allCustomerVehicles = await index.getAll(customerId);
+	return allCustomerVehicles;
+};
+
 const setVehicles = async (vehicles: Vehicle[]) => {
 	const db = await dbPromise;
 	const tx = db.transaction(VEHICLES, "readwrite");
@@ -19,4 +27,4 @@ const removeVehicles = async (ids: string[]): Promise<void> => {
 	await tx.done;
 };
 
-export { getVehicles, setVehicles, removeVehicles };
+export { getVehicles, setVehicles, removeVehicles, getVehiclesByCustomerId };
