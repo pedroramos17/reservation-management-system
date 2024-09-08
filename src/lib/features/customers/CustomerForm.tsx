@@ -34,14 +34,12 @@ export interface CustomerFormValues {
 	}[];
 }
 
-function parseNumberOrNullToString(value: number | null) {
-	return value ? String(value) : "";
-}
+type vehicleFormType = Omit<Vehicle, 'uptadedAt' | 'customerId'>;
 
 export default function CustomerForm(props: Readonly<UrlParams>) {
   const { id } = props;
   const router = useRouter()
-  const [error, setError] = useState<string | null>(null);
+  const [vehiclesRemoved, setVehiclesRemoved] = useState<vehicleFormType[]>([]);
   const { addCustomer, updateCustomer } = useCustomerForm();
   const initialValues = {
     name: '',
@@ -64,20 +62,22 @@ export default function CustomerForm(props: Readonly<UrlParams>) {
   const customer = useAppSelector(state => selectCustomerById(state, id));
   const customerVehicles: Vehicle[] = useAppSelector(state => selectVehiclesByCustomerId(state, id));
 
+  function parseNumberOrNullToString(value: number | null) {
+    return value ? String(value) : "";
+  }
 const handleFillForm = useCallback(() => {
-  const { id, name, email, taxpayerRegistration, phone} = customer;
-  const vehicles = customerVehicles.map(vehicle => ({ id: vehicle.id, brand: vehicle.brand, model: vehicle.model, year: parseNumberOrNullToString(vehicle.year), color: vehicle.color, variant: vehicle.variant, licensePlate: vehicle.licensePlate })); 
-  setFormData({ name, email, taxpayerRegistration: parseNumberOrNullToString(taxpayerRegistration), phone: parseNumberOrNullToString(phone), vehicles });
-}, [customer, customerVehicles]);
+  if (customer) {
+    const { name, email, taxpayerRegistration, phone } = customer;
+    const vehicles = customerVehicles.map(vehicle => ({ id: vehicle.id, brand: vehicle.brand, model: vehicle.model, year: parseNumberOrNullToString(vehicle.year), color: vehicle.color, variant: vehicle.variant, licensePlate: vehicle.licensePlate })); 
+    setFormData({ name, email, taxpayerRegistration: parseNumberOrNullToString(taxpayerRegistration), phone: parseNumberOrNullToString(phone), vehicles });  
+  }
+}, [customerVehicles, customer]);
 
 useEffect(() => {
   if (id) {
     handleFillForm();
   }
 }, [handleFillForm, id]);
-
-console.log("vehicles data from selector " + JSON.stringify(customerVehicles));
-console.log("customer by id " + customer);
 
   const validationSchema = Yup.object().shape({
    name: Yup.string().min(2, 'Nome muito curto').trim().required('Nome é obrigatório'),
@@ -94,16 +94,13 @@ console.log("customer by id " + customer);
         licensePlate: Yup.string().trim().required('Placa é obrigatório'),
       }).nullable(),
     )
-  })
+  });
 
   const handleSubmit = (values: CustomerFormValues, { setSubmitting }: FormikHelpers<CustomerFormValues>) => {
     if (id) {
       updateCustomer(values, id);
-      console.log("Valores do form edit" + JSON.stringify(values));
-
     } else {
       addCustomer(values);
-      console.log(values);
     }
     setSubmitting(false);
     router.push('/motoristas')
@@ -115,14 +112,13 @@ console.log("customer by id " + customer);
           <ArrowBack sx={{ fontSize: 36, color: '#000' }} />
         </Anchor>
         <h1>{id ? "Editar" : "Cadastrar"} Motorista</h1>
-        {error && <p style={{ color: 'red' }}>{error}</p>}
         <Formik
           initialValues={formData || initialValues}
           validationSchema={validationSchema}
           validateOnChange
           validateOnBlur
           onSubmit={handleSubmit}
-          enableReinitialize
+          enableReinitialize={true}
         >
           {({ values, touched, errors, handleChange, handleBlur, isValid } ) => {
             const touchedName = getIn(touched, 'name');
@@ -183,7 +179,16 @@ console.log("customer by id " + customer);
                 </FlexContainer>
                 <h2>Adicionar Veículo</h2>
                 <FieldArray name='vehicles'>
-                  {({ remove, push }) => (
+                  {({ remove, push }) => {
+                    const handleAddVehicle = () => {
+                      if (vehiclesRemoved.length > 0) {
+                        push(vehiclesRemoved.at(-1));
+                        setVehiclesRemoved(prevItems => prevItems.slice(0, -1));
+                      } else {
+                        push({ vehicleId: '', brand: '', model: '', year: '', color: '', variant: '', licensePlate: '' });
+                      }
+                    }
+                  return (
                     <div>
                       {values.vehicles?.length > 0 &&
                         values.vehicles.map((_, index) => {
@@ -215,11 +220,15 @@ console.log("customer by id " + customer);
 
                           return (
                           <div key={vehicleId} style={{ display: 'flex', flexDirection: 'column', gap: 12 }}>
-                            <Box sx={{ mt: 4 }}>
+                          <Box sx={{ mt: 4 }}>
                               <Button
                                 variant="outlined"
                                 color="error"
-                                onClick={() => remove(index)}
+                                onClick={() => {
+                                  const removedItem = remove<vehicleFormType>(index);
+                                  setVehiclesRemoved(prevItems => {
+                                  return removedItem === undefined ? prevItems : [...prevItems, removedItem]; 
+                                })}}
                               ><RemoveIcon /></Button>
                             </Box>
                             <GridContainer>
@@ -287,13 +296,13 @@ console.log("customer by id " + customer);
                             </GridContainer>
                           </div>
                         )})}
-                          <Box sx={{ my: 4 }}>
-                          <Button variant="contained" color="info" onClick={() => push({ brand: '', model: '', year: '', color: '', plate: '' })}>
+                        <Box sx={{ my: 4 }}>
+                          <Button variant="contained" color="info" onClick={() => handleAddVehicle()}>
                             +1 Veículo
                           </Button>
                         </Box>
                       </div>
-                  )}
+                  )}}
                 </FieldArray>
                 {!isValid && (
                   <span>Todos os campos precisam ser preenchidos corretamente</span>
