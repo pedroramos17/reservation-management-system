@@ -26,7 +26,6 @@ const initialState: VehiclesState = vehiclesAdapter.getInitialState({
 
 const getVehiclesAsync = createAsyncThunk("vehicle/getVehicles", async () => {
 	const vehicles = await getVehicles();
-	console.log("getVehicles", vehicles);
 	return vehicles;
 });
 
