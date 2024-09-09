@@ -7,10 +7,10 @@ import { initializeSlotsAsync } from './bookingSlice';
 import { useAppDispatch, useAppSelector } from '@/lib/store';
 import { Vehicle } from '@/lib/db/idb';
 import { getVehiclesAsync, selectAllVehicles } from '../vehicles/vehiclesSlice';
-
-interface BookingPageProps {
-  readonly query: string;
-}
+import { Autocomplete, Button, Stack } from '@mui/material';
+import Search from '@/lib/common/components/Search';
+import parse from 'autosuggest-highlight/parse';
+import match from 'autosuggest-highlight/match';
 
 function fetchFilteredVehicles(query: string, vehicles: Vehicle[]|[]) {
   const VehicleDocument = new FlexSearch.Document({
@@ -38,23 +38,20 @@ function fetchFilteredVehicles(query: string, vehicles: Vehicle[]|[]) {
   return results;
 }
 
+interface BookingPageProps {
+  readonly query: string;
+}
+
 export default function BookingPage(props: BookingPageProps) {
   const dispatch = useAppDispatch();
   const { slots, openBookings, bookings, orders } =
   useAppSelector((state) => state.bookings);
   const vehicles = useAppSelector((state) => selectAllVehicles(state));
   const { reserveSlot, freeSlot, chargingSelector, createOrder, howLongItTookForTheVehicleToLeaveInMinutes } = useBookingSlot();
-  const [vehicleId, setVehicleId] = useState('');
+  const [vehicleId, setVehicleId] = useState<string | null>(null);
+  const [error, setError] = useState<string | null>(null);
   const { query } = props;
-  const vehiclesResponse = fetchFilteredVehicles(query, vehicles);
-
-  let searchedVehiclesIds: any = [];
-  vehiclesResponse.forEach((response) => {
-    searchedVehiclesIds = response['result'];
-  })
-
-  const rows = query ? vehicles.filter((vehicle) => searchedVehiclesIds.includes(vehicle.id)) : vehicles;
-
+  
   useEffect(() => {
     dispatch(getVehiclesAsync())
   }, [dispatch])
@@ -65,30 +62,28 @@ export default function BookingPage(props: BookingPageProps) {
 
   const handleReserve = async () => {
     if (vehicleId) {
-      try {
-            await reserveSlot(vehicleId);
-            console.log(`Slot was reserved for vehicle ${vehicleId}`);
-            setVehicleId('');
-        } catch (err) {
-        console.error('Error reserving slot:', err);
-      }
-    };
+      await reserveSlot(vehicleId);
+      console.log(`Slot was reserved for vehicle ${vehicleId}`);
+      setVehicleId(null);
+    }
+    setError('No vehicle selected');
+    console.log(`No vehicle selected`);
   }
   const handleFree = (index: number) => {
     try {
-      const slotRealesed = freeSlot(index);
-      if (!slotRealesed) {
+      const slotReleased = freeSlot(index);
+      if (!slotReleased) {
         console.log(`Slot ${index} was not reserved`);
         return;
       }
       const minutesSpent = howLongItTookForTheVehicleToLeaveInMinutes(
-        slotRealesed.entryDate, slotRealesed.exitDate
+        slotReleased.entryDate, slotReleased.exitDate
       )
       const chargeBy =  "hour";
       const price = chargingSelector(minutesSpent, chargeBy, 0.25);
 
     createOrder({
-      bookingId: slotRealesed.id,
+      bookingId: slotReleased.id,
       timeSpentInMinutes: minutesSpent,
       chargeBy,
       price,
@@ -106,14 +101,51 @@ export default function BookingPage(props: BookingPageProps) {
 
   return (
     <div>
-      <h1>Estacionamento</h1>
-      <input
-        type="text"
-        value={vehicleId}
-        onChange={(e) => setVehicleId(e.target.value)}
-        placeholder="Enter vehicle ID"
-      />
-      <button onClick={handleReserve}>Reservar vaga</button>
+      <h1>Reservas</h1>
+      <Stack spacing={2} sx={{ width: '90%' }}>
+        <Autocomplete
+          id="free-solo-demo"
+          freeSolo
+          options={vehicles.map((vehicle) => `${vehicle.brand} ${vehicle.model} ${vehicle.color} ${vehicle.variant} ${vehicle.year ?? ''} ${vehicle.licensePlate}`)}
+          filterOptions={(options, { inputValue }) => {
+            const vehiclesResponse = fetchFilteredVehicles(inputValue, vehicles);
+
+            let searchedVehiclesIds: any = [];
+            vehiclesResponse.forEach((response) => {
+              searchedVehiclesIds = response['result'];
+            })
+            const filteredOptions = vehicles.filter((vehicle) => searchedVehiclesIds.includes(vehicle.id))
+            return inputValue ? filteredOptions.map((option) => `${option.brand} ${option.model} ${option.color} ${option.variant} ${option.year ?? ''} ${option.licensePlate}`) : options;
+          }}
+          renderInput={(params) => <Search {...params} variant="standard" placeholder='Pesquise por marca, modelo, cor, placa...' />}
+          value={query}
+          onChange={(event, value) => setVehicleId(value)}
+          renderOption={(props, option, { inputValue }) => {
+            const matches = match(option, inputValue, { insideWords: true });
+            const parts = parse(option, matches);
+    
+            return (
+              <li {...props}>
+                <div>
+                  {parts.map((part: any, index: any) => (
+                    <span
+                      key={index}
+                      style={{
+                        fontWeight: part.highlight ? 700 : 400,
+                      }}
+                    >
+                      {part.text}
+                    </span>
+                  ))}
+                </div>
+              </li>
+            );
+          }}
+          />
+      </Stack>
+      <div style={{ display: 'flex', justifyContent: 'start' }}>
+        <Button sx={{ width: 150, marginY: 1, marginRight: 2 }} variant='contained' disabled={!vehicleId} onClick={handleReserve}>Reservar vaga</Button>
+      </div>
       {slots.map((slot, index) => (
         <div key={index}>
           <button onClick={() => handleFree(index)} disabled={!slot}>
