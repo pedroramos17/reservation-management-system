@@ -71,7 +71,7 @@ export default function CustomerList(props: CustomersProps) {
     <Container>
       <h1>Motoristas</h1>
       <HeaderContainer>
-        <Search placeholder="Pesquisar motoristas" />
+        <Search variant="standard" placeholder="Pesquisar motoristas" />
         <SearchTool addBtnLink="/motoristas/criar" />
       </HeaderContainer>
       <CustomerTable
