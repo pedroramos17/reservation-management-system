@@ -1,11 +1,8 @@
-import { TextField } from "@mui/material";
+import { TextField, TextFieldProps } from "@mui/material";
 import { usePathname, useRouter, useSearchParams } from "next/navigation";
 import { useDebouncedCallback } from "use-debounce";
 
-export default function Search(props: Readonly<{
-    placeholder: string
-}>) {
-    const { placeholder } = props;
+export default function Search(props: TextFieldProps) {
     const searchParams = useSearchParams();
     const pathname = usePathname();
     const { replace } = useRouter();
@@ -22,11 +19,10 @@ export default function Search(props: Readonly<{
 
     return (
         <TextField
-          placeholder={placeholder}
-          variant="standard"
           sx={{ width: '100%' }}
           onChange={(e) => handleSearch(e.target.value)}
           defaultValue={searchParams.get('query')?.toString()}
+          {...props}
         />
     )
 }
