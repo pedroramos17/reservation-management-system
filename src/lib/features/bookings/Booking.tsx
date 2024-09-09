@@ -102,6 +102,10 @@ export default function BookingPage(props: BookingPageProps) {
   return (
     <div>
       <h1>Reservas</h1>
+      <div style={{ marginBottom: '24px', display: 'flex', justifyContent: 'start', gap: '24px' }}>
+        <p>Total de vagas disponíveis: {slots.length}</p>
+        <p>Total de vagas livres: {slots.filter((slot) => !slot).length}</p>
+      </div>
       <Stack spacing={2} sx={{ width: '90%' }}>
         <Autocomplete
           id="free-solo-demo"
@@ -146,13 +150,12 @@ export default function BookingPage(props: BookingPageProps) {
       <div style={{ display: 'flex', justifyContent: 'start' }}>
         <Button sx={{ width: 150, marginY: 1, marginRight: 2 }} variant='contained' disabled={!vehicleId} onClick={handleReserve}>Reservar vaga</Button>
       </div>
-      {slots.map((slot, index) => (
-        <div key={index}>
-          <button onClick={() => handleFree(index)} disabled={!slot}>
-            {slot 
-              ? `Free Slot ${index} (Vehicle: ${openBookings.find((r) => r.slotIndex === index)?.vehicleId})` 
-              : `Slot ${index} (Free)`}
-          </button>
+      {slots.map((slot, index) => slot && (
+        <div key={index} style={{ display: 'flex', justifyContent: 'start', gap: '8px' }}>
+          <Button sx={{ width: 150 }} onClick={() => handleFree(index)} disabled={!slot}>
+            Liberar vaga {index}
+          </Button>
+          <p>Veículo: {openBookings.find((r) => r.slotIndex === index)?.vehicleId}</p>
         </div>
       ))}
       <h3>Histórico de reservas</h3>
