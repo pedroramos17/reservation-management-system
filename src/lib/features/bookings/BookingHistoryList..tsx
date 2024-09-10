@@ -4,6 +4,8 @@ import { Button, List, ListItem, ListItemText } from "@mui/material";
 import { useAppDispatch, useAppSelector } from "@/lib/store";
 import { initializeFromDB } from "./bookingSlice";
 import { useEffect } from "react";
+import Anchor from "@/lib/common/components/Anchor";
+import ArrowBack from "@mui/icons-material/ArrowBack";
 
 export default function BookingHistoryList() {
     const dispatch = useAppDispatch();
@@ -21,7 +23,12 @@ export default function BookingHistoryList() {
 
     return (
     <div>
-        <h1>Histórico de reservas</h1>
+        <div style={{ display: 'flex', alignItems: 'center', gap: '16px' }}>
+            <Anchor href="/estacionamento">
+            <ArrowBack sx={{ fontSize: 36, color: '#000' }} />
+            </Anchor>
+            <h1>Histórico de reservas</h1>
+        </div>
         {bookings.map((booking) => booking && (
           <List key={booking.id} style={{ display: 'flex', justifyContent: 'start', gap: '8px', height: '56px' }}>
             <ListItem>

@@ -112,11 +112,14 @@ useEffect(() => {
   }
 
   return (
-      <Box sx={{ mx: 4 }}>
-        <Anchor href="/motoristas">
-          <ArrowBack sx={{ fontSize: 36, color: '#000' }} />
-        </Anchor>
-        <h1>{id ? "Editar" : "Cadastrar"} Motorista</h1>
+        <div>
+        <Box sx={{ display: 'flex', alignItems: 'center', mb: 2, gap: '16px' }}>
+          <Anchor href="/motoristas">
+            <ArrowBack sx={{ fontSize: 36, color: '#000' }} />
+          </Anchor>
+          <h1>{id ? "Editar" : "Cadastrar"} Motorista</h1>
+        </Box>
+          <Box sx={{ mx: 4 }}>
         <Formik
           initialValues={formData || initialValues}
           validationSchema={validationSchema}
@@ -320,5 +323,6 @@ useEffect(() => {
           )}}
         </Formik>
       </Box>
+      </div>
   );
 }
