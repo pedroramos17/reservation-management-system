@@ -7,10 +7,12 @@ import { initializeSlotsAsync } from './bookingSlice';
 import { useAppDispatch, useAppSelector } from '@/lib/store';
 import { Vehicle } from '@/lib/db/idb';
 import { getVehiclesAsync, selectAllVehicles } from '../vehicles/vehiclesSlice';
-import { Autocomplete, Button, Stack } from '@mui/material';
+import { Autocomplete, Button, List, ListItem, ListItemText, Stack } from '@mui/material';
 import Search from '@/lib/common/components/Search';
 import parse from 'autosuggest-highlight/parse';
 import match from 'autosuggest-highlight/match';
+import HistoryIcon from '@mui/icons-material/History';
+import Anchor from '@/lib/common/components/Anchor';
 
 function fetchFilteredVehicles(query: string, vehicles: Vehicle[]|[]) {
   const VehicleDocument = new FlexSearch.Document({
@@ -44,12 +46,11 @@ interface BookingPageProps {
 
 export default function BookingPage(props: BookingPageProps) {
   const dispatch = useAppDispatch();
-  const { slots, openBookings, bookings, orders } =
+  const { slots, openBookings, orders } =
   useAppSelector((state) => state.bookings);
   const vehicles = useAppSelector((state) => selectAllVehicles(state));
   const { reserveSlot, freeSlot, chargingSelector, createOrder, howLongItTookForTheVehicleToLeaveInMinutes } = useBookingSlot();
   const [vehicleId, setVehicleId] = useState<string | null>(null);
-  const [error, setError] = useState<string | null>(null);
   const { query } = props;
   
   useEffect(() => {
@@ -66,7 +67,6 @@ export default function BookingPage(props: BookingPageProps) {
       console.log(`Slot was reserved for vehicle ${vehicleId}`);
       setVehicleId(null);
     }
-    setError('No vehicle selected');
     console.log(`No vehicle selected`);
   }
   const handleFree = (index: number) => {
@@ -93,10 +93,11 @@ export default function BookingPage(props: BookingPageProps) {
       console.error('Error freeing slot:', err);
     }
   };
-  
-  type FormatDateType = string | number | Date | null;
-  const formatDate = (date: FormatDateType) => {
-    return date ? new Date(date).toLocaleString() : 'N/A';
+
+  const handleSelectVehicleOption = (event: any, value: string | null) => {
+    const vehicleLicensePlate = value?.split(' ').at(-1) || null;
+    setVehicleId(vehicleLicensePlate);
+    console.log(vehicleId);
   };
 
   return (
@@ -110,6 +111,8 @@ export default function BookingPage(props: BookingPageProps) {
         <Autocomplete
           id="free-solo-demo"
           freeSolo
+          value={query}
+          onChange={handleSelectVehicleOption}
           options={vehicles.map((vehicle) => `${vehicle.brand} ${vehicle.model} ${vehicle.color} ${vehicle.variant} ${vehicle.year ?? ''} ${vehicle.licensePlate}`)}
           filterOptions={(options, { inputValue }) => {
             const vehiclesResponse = fetchFilteredVehicles(inputValue, vehicles);
@@ -122,8 +125,6 @@ export default function BookingPage(props: BookingPageProps) {
             return inputValue ? filteredOptions.map((option) => `${option.brand} ${option.model} ${option.color} ${option.variant} ${option.year ?? ''} ${option.licensePlate}`) : options;
           }}
           renderInput={(params) => <Search {...params} variant="standard" placeholder='Pesquise por marca, modelo, cor, placa...' />}
-          value={query}
-          onChange={(event, value) => setVehicleId(value)}
           renderOption={(props, option, { inputValue }) => {
             const matches = match(option, inputValue, { insideWords: true });
             const parts = parse(option, matches);
@@ -147,30 +148,23 @@ export default function BookingPage(props: BookingPageProps) {
           }}
           />
       </Stack>
-      <div style={{ display: 'flex', justifyContent: 'start' }}>
-        <Button sx={{ width: 150, marginY: 1, marginRight: 2 }} variant='contained' disabled={!vehicleId} onClick={handleReserve}>Reservar vaga</Button>
+      <div style={{ display: 'flex', justifyContent: 'space-between', margin: '24px 0', height: '60px' }}>
+        <Button sx={{ width: 150, marginY: 1, marginRight: 2 }} variant='contained' disabled={!vehicleId} onClick={handleReserve}>Reservar</Button>
+        <Button ><Anchor href={'/estacionamento/historico'} ><span style={{width: '100%', display: 'flex', alignItems: 'center', gap: '8px'}}><HistoryIcon /> histórico de reservas</span></Anchor></Button>
       </div>
       {slots.map((slot, index) => slot && (
-        <div key={index} style={{ display: 'flex', justifyContent: 'start', gap: '8px' }}>
+      <List key={index}  style={{ display: 'flex', justifyContent: 'start', gap: '8px' }}>
+        <ListItem>
+              <ListItemText
+                primary={`Veículo: ${openBookings.find((r) => r.slotIndex === index)?.vehicleId}`}
+                secondary={'Nome do motorista'}
+              />
+            </ListItem>
           <Button sx={{ width: 150 }} onClick={() => handleFree(index)} disabled={!slot}>
-            Liberar vaga {index}
+            Liberar reserva {index}
           </Button>
-          <p>Veículo: {openBookings.find((r) => r.slotIndex === index)?.vehicleId}</p>
-        </div>
+      </List>
       ))}
-      <h3>Histórico de reservas</h3>
-      <ul>
-        {bookings.map((booking) => {
-          return (
-            <li key={booking.id}>
-              Vehicle: {booking.vehicleId}, 
-              Slot: {booking.slotIndex}, 
-              Entry: {formatDate(booking.entryDate)}, 
-              Exit: {formatDate(booking.exitDate)},
-            </li>
-          )
-        } )}
-      </ul>
       {orders && (
         <div>
           <h3>Últimos pedidos</h3>
