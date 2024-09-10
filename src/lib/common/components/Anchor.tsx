@@ -7,6 +7,6 @@ interface LinkProps extends LinkBaseProps {
 }
 
 export default function Anchor(props: LinkProps) {
-    const { href, children } = props;
-    return <Link href={href} style={{ textDecoration: 'none', color: 'inherit' }}>{children}</Link>;
+    const { href, children, ...params } = props;
+    return <Link href={href} style={{ textDecoration: 'none', color: 'inherit' }} {...params}>{children}</Link>;
 }
