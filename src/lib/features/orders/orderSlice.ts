@@ -7,8 +7,8 @@ import { Order } from "@/lib/db/idb";
 import { addOrder, getOrders } from "@/lib/repositories/bookingRepository";
 import { RootState } from "@/lib/store";
 
-export const initializeOrdersAsync = createAsyncThunk(
-	"booking/initializeOrders",
+export const getOrdersAsync = createAsyncThunk(
+	"booking/getOrders",
 	async () => {
 		const orders = await getOrders();
 		return orders;
@@ -35,14 +35,14 @@ export const orderSlice = createSlice({
 	}),
 	reducers: {},
 	extraReducers: (builder) => {
-		builder.addCase(initializeOrdersAsync.pending, (state) => {
+		builder.addCase(getOrdersAsync.pending, (state) => {
 			state.status = "loading";
 		});
-		builder.addCase(initializeOrdersAsync.fulfilled, (state, action) => {
+		builder.addCase(getOrdersAsync.fulfilled, (state, action) => {
 			OrderAdapter.upsertMany(state, action.payload);
 			state.status = "idle";
 		});
-		builder.addCase(initializeOrdersAsync.rejected, (state) => {
+		builder.addCase(getOrdersAsync.rejected, (state) => {
 			state.status = "failed";
 		});
 		builder.addCase(createOrderAsync.fulfilled, (state, action) => {

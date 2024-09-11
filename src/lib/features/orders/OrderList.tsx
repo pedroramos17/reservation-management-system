@@ -1,14 +1,21 @@
 'use client';
 
-import { initializeOrdersAsync, selectAllOrders } from "./orderSlice";
+import { getOrdersAsync, selectAllOrders } from "./orderSlice";
 import { useAppDispatch, useAppSelector } from "@/lib/store";
 import { useEffect } from "react";
+import OrderCard from "./OrderCard";
+import { getVehiclesAsync } from "../vehicles/vehiclesSlice";
+import { getCustomersAsync } from "../customers/customersSlice";
+import { getBookingsAsync } from "../bookings/bookingSlice";
 
 export default function OrderList() {
     const dispatch = useAppDispatch();
 
     useEffect(() => {
-        dispatch(initializeOrdersAsync());
+        dispatch(getCustomersAsync());
+        dispatch(getVehiclesAsync());
+        dispatch(getBookingsAsync());
+        dispatch(getOrdersAsync());
     }, [dispatch]);
 
     const orders = useAppSelector((state) => selectAllOrders(state));
@@ -19,21 +26,15 @@ export default function OrderList() {
 
             {orders && (
                 <div>
-                    <h3>Últimos pedidos</h3>
-                    <ul>
-                        {
-                        orders.map((order) => {
-                            const hours = Math.floor(order.minutes / 60),
-                            minutes = order.minutes % 60;
+                    <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr 1fr 1fr', gap: 10 }}>
+                        {orders.map((order) => {   
                             return  (
-                            <li key={order.bookingId}>
-                                Duration: {hours}h {minutes}m, 
-                                Total cost: ${order.price.toFixed(2)}
-                            </li>
+                                <div key={order.bookingId}>
+                                    <OrderCard order={order} />
+                                </div>
                             )
-                        })
-                        }
-                    </ul>
+                        })}
+                    </div>
                 </div>
             )}
         </div>
