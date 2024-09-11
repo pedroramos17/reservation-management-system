@@ -1,4 +1,9 @@
-import { createSlice, createAsyncThunk } from "@reduxjs/toolkit";
+import {
+	createSlice,
+	createAsyncThunk,
+	createEntityAdapter,
+	EntityState,
+} from "@reduxjs/toolkit";
 import type { Booking, Order } from "@/lib/db/idb";
 import {
 	addBooking,
@@ -9,15 +14,18 @@ import {
 	setSlots,
 	addOrder,
 	getOrders,
+	deleteBooking,
 } from "@/lib/repositories/bookingRepository";
 interface OpenBookings {
 	slotIndex: number;
 	vehicleId: string | null;
 }
+
+const bookingAdapter = createEntityAdapter<Booking>();
 interface BookingState {
 	slots: boolean[];
 	openBookings: OpenBookings[];
-	bookings: Booking[];
+	bookings: EntityState<Booking, string>;
 	orders: Order[];
 	status: "idle" | "loading" | "failed";
 	error: string | null;
@@ -25,7 +33,7 @@ interface BookingState {
 const initialState: BookingState = {
 	slots: [],
 	openBookings: [],
-	bookings: [],
+	bookings: bookingAdapter.getInitialState(),
 	orders: [],
 	status: "idle",
 	error: null,
@@ -100,6 +108,22 @@ export const freeSlotAsync = createAsyncThunk(
 	}
 );
 
+export const deleteBookingAsync = createAsyncThunk(
+	"booking/deleteBooking",
+	async ({
+		id,
+		newSlots,
+		newOpenBookings,
+	}: {
+		id: string;
+		newSlots: boolean[];
+		newOpenBookings: OpenBookings[];
+	}) => {
+		await Promise.all([setSlots(newSlots), deleteBooking(id)]);
+		return { id, newSlots, newOpenBookings };
+	}
+);
+
 export const createOrderAsync = createAsyncThunk(
 	"booking/createOrder",
 	async (order: Order) => {
@@ -122,7 +146,10 @@ export const bookingSlice = createSlice({
 				state.status = "idle";
 				state.slots = action.payload.slots;
 				state.openBookings = action.payload.openBookings;
-				state.bookings = action.payload.bookings;
+				bookingAdapter.upsertMany(
+					state.bookings,
+					action.payload.bookings
+				);
 				state.orders = action.payload.orders;
 			})
 			.addCase(initializeFromDB.rejected, (state, action) => {
@@ -137,17 +164,23 @@ export const bookingSlice = createSlice({
 			.addCase(reserveSlotAsync.fulfilled, (state, action) => {
 				state.slots[action.payload.index] = true;
 				state.openBookings = action.payload.newOpenBookings;
-				state.bookings.push(action.payload.newBooking);
+				bookingAdapter.addOne(
+					state.bookings,
+					action.payload.newBooking
+				);
 			})
 			.addCase(freeSlotAsync.fulfilled, (state, action) => {
 				state.slots[action.payload.slotIndex] = false;
 				state.openBookings = action.payload.newOpenBookings;
-				const index = state.bookings.findIndex(
-					(r) => r.id === action.payload.closedBooking.id
+				bookingAdapter.upsertOne(
+					state.bookings,
+					action.payload.closedBooking
 				);
-				if (index !== -1) {
-					state.bookings[index] = action.payload.closedBooking;
-				}
+			})
+			.addCase(deleteBookingAsync.fulfilled, (state, action) => {
+				state.openBookings = action.payload.newOpenBookings;
+				state.slots = action.payload.newSlots;
+				bookingAdapter.removeOne(state.bookings, action.payload.id);
 			})
 			.addCase(createOrderAsync.fulfilled, (state, action) => {
 				state.orders.push(action.payload);

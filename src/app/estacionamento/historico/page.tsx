@@ -1,5 +1,5 @@
-import BookingHistoryList from "@/lib/features/bookings/BookingHistoryList.";
+import BookingList from "@/lib/features/bookings/BookingList.";
 
 export default function Page() {
-    return <BookingHistoryList />;
+    return <BookingList />;
 }

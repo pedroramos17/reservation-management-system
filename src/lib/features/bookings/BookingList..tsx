@@ -1,25 +1,27 @@
 'use client';
 
-import { Button, List, ListItem, ListItemText } from "@mui/material";
-import { useAppDispatch, useAppSelector } from "@/lib/store";
-import { initializeFromDB } from "./bookingSlice";
 import { useEffect, useMemo, useState } from "react";
-import Anchor from "@/lib/common/components/Anchor";
-import ArrowBack from "@mui/icons-material/ArrowBack";
+import { Button, List, ListItem, ListItemText } from "@mui/material";
+import dayjs, { Dayjs } from "dayjs";
 import { LocalizationProvider } from '@mui/x-date-pickers/LocalizationProvider';
 import { DatePicker } from "@mui/x-date-pickers/DatePicker";
-import dayjs, { Dayjs } from "dayjs";
 import { AdapterDayjs } from "@mui/x-date-pickers/AdapterDayjs";
+import { useAppDispatch, useAppSelector } from "@/lib/store";
+import { deleteBookingAsync, initializeFromDB } from "./bookingSlice";
+import Anchor from "@/lib/common/components/Anchor";
+import ArrowBack from "@mui/icons-material/ArrowBack";
 import { Booking } from "@/lib/db/idb";
-export default function BookingHistoryList() {
+
+export default function BookingList() {
     const dispatch = useAppDispatch();
     useEffect(() => {
         dispatch(initializeFromDB())
       }, [dispatch])
 
-    const { bookings } =
+    const {bookings, slots, openBookings} =
   useAppSelector((state) => state.bookings);
-  const [fromDate, setFromDate] = useState<Dayjs | null>(dayjs('2022-04-17'));
+  const bookingValues = Object.values(bookings.entities);
+  const [fromDate, setFromDate] = useState<Dayjs | null>(null);
   const [toDate, setToDate] = useState<Dayjs | null>(dayjs());
 
   type FormatDateType = string | number | Date | null;
@@ -34,8 +36,35 @@ export default function BookingHistoryList() {
   const fromDateTimestamp: number = fromDate ? dayjs(fromDate).toDate().getTime() : 0;
   const toDateTimestamp: number = toDate ? dayjs(toDate).toDate().getTime() : new Date().getTime();
   const OneDaYInMilliseconds = 86400000;
-  const filteredItems: Booking[] = useMemo(() => bookings.filter((booking) => booking.entryDate > fromDateTimestamp && booking.entryDate < toDateTimestamp + OneDaYInMilliseconds), [bookings, fromDateTimestamp, toDateTimestamp]);
-
+  const filteredItems: Booking[] = useMemo(() => bookingValues.filter((booking) => booking.entryDate > fromDateTimestamp && booking.entryDate < toDateTimestamp + OneDaYInMilliseconds), [bookingValues, fromDateTimestamp, toDateTimestamp]);
+  const handleDelete = async ({bookingId, vehicleId}: {bookingId: string, vehicleId: string}) => {
+    if (openBookings) {
+      const newOpenBookings = [...openBookings];
+      console.info('newOpenBookings', newOpenBookings);
+      const openBookingsByVehicleId = newOpenBookings.filter(
+        (booking) => booking.vehicleId === vehicleId);
+        console.log('vehicleOpenBookings', openBookingsByVehicleId);
+        const openBookingsSlotIndex = openBookingsByVehicleId.map((booking) => booking.slotIndex);
+        console.log('openBookingsSlotIndex', openBookingsSlotIndex);
+        if (slots) {
+          const newSlots = [...slots];
+          if (openBookingsSlotIndex) {
+            openBookingsSlotIndex.forEach((index) => {
+              newSlots[index] = false;
+            });
+          }
+    
+          const newOpenBookings = openBookings.filter(
+            (booking) => booking.vehicleId !== vehicleId
+          );
+          try {
+            await dispatch(deleteBookingAsync({id: bookingId, newSlots, newOpenBookings})).unwrap();
+          } catch (error) {
+            console.error('handleDelete: error', error);
+          };
+        };
+    }
+    }
     return (
     <div>
         <div style={{ display: 'flex', alignItems: 'center', gap: '16px' }}>
@@ -71,10 +100,7 @@ export default function BookingHistoryList() {
                       secondary={'Nome do motorista'}
                     />
               </ListItem>
-              <Button variant='outlined' color='warning' sx={{ width: 150 }}>
-                Editar
-              </Button>
-              <Button variant='outlined' color='error' sx={{ width: 150 }}>
+              <Button variant='outlined' color='error' sx={{ width: 150 }} onClick={() => handleDelete({bookingId: booking.id, vehicleId: booking.vehicleId})}	>
                 Excluir
               </Button>
             </List>

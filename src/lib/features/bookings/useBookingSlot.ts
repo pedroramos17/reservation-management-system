@@ -19,6 +19,7 @@ export function useBookingSlot() {
 	const { slots, openBookings, bookings } = useAppSelector(
 		(state) => state.bookings
 	);
+	const bookingValues = Object.values(bookings);
 	const reserve = useCallback(
 		(vehicleId: string) => {
 			const index = slots.findIndex((isReserved) => !isReserved);
@@ -64,7 +65,7 @@ export function useBookingSlot() {
 				const vehicleId = openBookings.find(
 					(r) => r.slotIndex === slotIndex
 				)?.vehicleId;
-				const booking = bookings.find(
+				const booking = bookingValues.find(
 					(r) =>
 						r.vehicleId === vehicleId &&
 						r.slotIndex === slotIndex &&
@@ -88,7 +89,7 @@ export function useBookingSlot() {
 				}
 			}
 		},
-		[dispatch, slots, openBookings, bookings]
+		[dispatch, slots, openBookings, bookingValues]
 	);
 	const convertMillisecondsToMinutes = (milliseconds: number) =>
 		Math.floor(milliseconds / (1000 * 60));
@@ -141,7 +142,7 @@ export function useBookingSlot() {
 	}
 	const createOrder = (props: OrderProps) => {
 		const { bookingId, timeSpentInMinutes, chargeBy, price } = props;
-		const booking = bookings.find((b) => b.id === bookingId);
+		const booking = bookingValues.find((b) => b.id === bookingId);
 		if (!booking) {
 			return { message: "Booking not found", error: true };
 		}

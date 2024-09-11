@@ -46,6 +46,11 @@ const addOrder = async (order: Order) => {
 	await db.add(ORDERS, order);
 };
 
+const deleteBooking = async (id: string) => {
+	const db = await dbPromise;
+	await db.delete(BOOKINGS, id);
+};
+
 export {
 	getSlots,
 	setSlots,
@@ -55,4 +60,5 @@ export {
 	updateBooking,
 	getOrders,
 	addOrder,
+	deleteBooking,
 };

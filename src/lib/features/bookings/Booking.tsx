@@ -1,6 +1,6 @@
 'use client';
 
-import React, { useEffect, useState } from 'react';
+import React, { useEffect, useMemo, useState } from 'react';
 import FlexSearch from 'flexsearch';
 import { useBookingSlot } from './useBookingSlot';
 import { initializeSlotsAsync } from './bookingSlice';
@@ -94,9 +94,10 @@ export default function BookingPage(props: BookingPageProps) {
     }
   };
 
-  const handleSelectVehicleOption = (event: any, value: string | null) => {
+  const handleSelectVehicleOption = (_: any, value: string | null) => {
     const vehicleLicensePlate = value?.split(' ').at(-1) || null;
-    setVehicleId(vehicleLicensePlate);
+    const vehicleId = vehicles.find((vehicle) => vehicle.licensePlate === vehicleLicensePlate)?.id ?? null;
+    setVehicleId(vehicleId);
     console.log(vehicleId);
   };
 
@@ -153,17 +154,17 @@ export default function BookingPage(props: BookingPageProps) {
         <Button ><Anchor href={'/estacionamento/historico'} ><span style={{width: '100%', display: 'flex', alignItems: 'center', gap: '8px'}}><HistoryIcon /> histórico de reservas</span></Anchor></Button>
       </div>
       {slots.map((slot, index) => slot && (
-      <List key={index}  style={{ display: 'flex', justifyContent: 'start', gap: '8px' }}>
-        <ListItem>
-              <ListItemText
-                primary={`Veículo: ${openBookings.find((r) => r.slotIndex === index)?.vehicleId}`}
-                secondary={'Nome do motorista'}
-              />
-            </ListItem>
-          <Button sx={{ width: 150 }} onClick={() => handleFree(index)} disabled={!slot}>
-            Liberar reserva {index}
-          </Button>
-      </List>
+          <List key={index}  style={{ display: 'flex', justifyContent: 'start', gap: '8px' }}>
+            <ListItem>
+                  <ListItemText
+                    primary={`Veículo: ${openBookings.find((booking) => booking.slotIndex === index)?.vehicleId}`}
+                    secondary={'Nome do motorista'}
+                  />
+                </ListItem>
+              <Button sx={{ width: 150 }} onClick={() => handleFree(index)} disabled={!slot}>
+                Liberar reserva {index}
+              </Button>
+          </List>
       ))}
       {orders && (
         <div>
