@@ -7,7 +7,7 @@ import SearchTool from '@/lib/common/components/SearchTool';
 import { Container, HeaderContainer } from '@/lib/common/components/styles';
 import Search from '@/lib/common/components/Search';
 import { useAppDispatch, useAppSelector } from "@/lib/store"
-import { getCustomersAsync, deleteCustomerAsync } from '@/lib/features/customers/customersSlice';
+import { getCustomersAsync, deleteCustomerAsync, selectAllCustomers } from '@/lib/features/customers/customersSlice';
 import type { Customer } from '@/lib/db/idb';
 import { deleteVehiclesAsync } from '../vehicles/vehiclesSlice';
 import { getVehiclesByCustomerId } from '@/lib/repositories/vehicleRepository';
@@ -41,19 +41,18 @@ interface CustomersProps {
 
 export default function CustomerList(props: CustomersProps) {
   const dispatch = useAppDispatch();
-  const { entities } = useAppSelector((state) => state.customers);
+  useEffect(() => {
+    dispatch(getCustomersAsync())
+  }, [dispatch])
+  const customers = useAppSelector((state) => selectAllCustomers(state));
   const { query } = props;
-  const customersValues = Object.values(entities);
-  const customers = customersValues;
   const customersResponse = fetchFilteredCustomers(query, customers);
   
   let searchedCustomersIds: any = [];
   customersResponse.forEach((response) => {
     searchedCustomersIds = response['result'];
   })
-  useEffect(() => {
-    dispatch(getCustomersAsync())
-  }, [dispatch])
+  
   async function handleDeleteCustomer(customerId: string) {
         const customerVehicles = await getVehiclesByCustomerId(customerId)
         const hasVehicles = customerVehicles && customerVehicles.length > 0;

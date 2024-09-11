@@ -1,9 +1,9 @@
 'use client';
 
-import React, { useCallback, useEffect, useMemo, useState } from 'react';
+import React, { useCallback, useEffect, useState } from 'react';
 import FlexSearch from 'flexsearch';
 import { useBookingSlot } from './useBookingSlot';
-import { initializeSlotsAsync } from './bookingSlice';
+import { getBookingsAsync, initializeSlotsAsync } from './bookingSlice';
 import { useAppDispatch, useAppSelector } from '@/lib/store';
 import { Vehicle } from '@/lib/db/idb';
 import { getVehiclesAsync, selectAllVehicles } from '../vehicles/vehiclesSlice';
@@ -46,20 +46,17 @@ interface BookingPageProps {
 
 export default function BookingPage(props: BookingPageProps) {
   const dispatch = useAppDispatch();
+  useEffect(() => {
+    dispatch(initializeSlotsAsync(10));
+    dispatch(getBookingsAsync());
+    dispatch(getVehiclesAsync());
+  }, [dispatch])
   const { slots, openBookings } =
   useAppSelector((state) => state.bookings);
   const vehicles = useAppSelector((state) => selectAllVehicles(state));
   const { reserveSlot, freeSlot, chargingSelector, createOrder, howLongItTookForTheVehicleToLeaveInMinutes } = useBookingSlot();
   const [vehicleId, setVehicleId] = useState<string | null>(null);
   const { query } = props;
-  
-  useEffect(() => {
-    dispatch(getVehiclesAsync())
-  }, [dispatch])
-
-  useEffect(() => {
-    dispatch(initializeSlotsAsync(10));
-  }, [dispatch]);
 
   const handleReserve = async () => {
     if (vehicleId) {

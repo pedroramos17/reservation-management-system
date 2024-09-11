@@ -14,6 +14,7 @@ import {
 	setSlots,
 	deleteBooking,
 } from "@/lib/repositories/bookingRepository";
+import { RootState } from "@/lib/store";
 interface OpenBookings {
 	slotIndex: number;
 	vehicleId: string | null;
@@ -35,15 +36,15 @@ const initialState: BookingState = {
 	error: null,
 };
 
-export const initializeFromDB = createAsyncThunk(
-	"booking/initializeFromDB",
+export const getBookingsAsync = createAsyncThunk(
+	"booking/getBookingsAsync",
 	async () => {
 		const [slots, openBookings, bookings] = await Promise.all([
 			getSlots(),
 			getOpenBookings(),
 			getBookings(),
 		]);
-		console.log("initializeFromDB", slots, openBookings, bookings);
+		console.log("getBookingsAsync", slots, openBookings, bookings);
 		return {
 			slots,
 			openBookings,
@@ -59,9 +60,8 @@ export const initializeSlotsAsync = createAsyncThunk(
 		if (slots.length !== slotCount) {
 			slots = new Array(slotCount).fill(false);
 		}
-		const openBookings = await getOpenBookings();
 		await setSlots(slots);
-		return { slots, openBookings };
+		return slots;
 	}
 );
 
@@ -124,10 +124,10 @@ export const bookingSlice = createSlice({
 	reducers: {},
 	extraReducers: (builder) => {
 		builder
-			.addCase(initializeFromDB.pending, (state) => {
+			.addCase(getBookingsAsync.pending, (state) => {
 				state.status = "loading";
 			})
-			.addCase(initializeFromDB.fulfilled, (state, action) => {
+			.addCase(getBookingsAsync.fulfilled, (state, action) => {
 				state.status = "idle";
 				state.slots = action.payload.slots;
 				state.openBookings = action.payload.openBookings;
@@ -136,14 +136,13 @@ export const bookingSlice = createSlice({
 					action.payload.bookings
 				);
 			})
-			.addCase(initializeFromDB.rejected, (state, action) => {
+			.addCase(getBookingsAsync.rejected, (state, action) => {
 				state.status = "failed";
 				state.error =
 					action.error.message ?? "Failed to initialize from DB";
 			})
 			.addCase(initializeSlotsAsync.fulfilled, (state, action) => {
-				state.slots = action.payload.slots;
-				state.openBookings = action.payload.openBookings;
+				state.slots = action.payload;
 			})
 			.addCase(reserveSlotAsync.fulfilled, (state, action) => {
 				state.slots[action.payload.index] = true;
@@ -170,3 +169,9 @@ export const bookingSlice = createSlice({
 });
 
 export default bookingSlice.reducer;
+
+export const {
+	selectAll: selectAllBookings,
+	selectById: selectBookingById,
+	selectIds: selectBookingIds,
+} = bookingAdapter.getSelectors((state: RootState) => state.bookings.bookings);

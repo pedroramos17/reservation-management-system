@@ -61,6 +61,10 @@ export default function CustomerForm(props: Readonly<UrlParams>) {
     ]
 }
   const [formData, setFormData] = useState<CustomerFormValues>(initialValues);
+  useEffect(() => {
+    dispatch(getCustomersAsync());
+    dispatch(getVehiclesAsync());
+  }, [dispatch]);
   const customer = useAppSelector(state => selectCustomerById(state, id));
   const customerVehicles: Vehicle[] = useAppSelector(state => selectVehiclesByCustomerId(state, id));
 
@@ -74,10 +78,7 @@ const handleFillForm = useCallback(() => {
     setFormData({ name, email, taxpayerRegistration: parseNumberOrNullToString(taxpayerRegistration), phone: parseNumberOrNullToString(phone), vehicles });  
   }
 }, [customerVehicles, customer]);
-useEffect(() => {
-  dispatch(getCustomersAsync());
-  dispatch(getVehiclesAsync());
-}, [dispatch]);
+
 useEffect(() => {
   if (id) {
     handleFillForm();

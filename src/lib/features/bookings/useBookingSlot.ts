@@ -2,18 +2,18 @@ import { useCallback, useEffect } from "react";
 import {
 	reserveSlotAsync,
 	freeSlotAsync,
-	initializeFromDB,
-	createOrderAsync,
+	getBookingsAsync,
 } from "./bookingSlice";
 import { useAppDispatch, useAppSelector } from "@/lib/store";
 import { Order, Booking, ChargeByType } from "@/lib/db/idb";
 import chargingStrategy from "./chargingStrategy";
+import { createOrderAsync } from "../orders/orderSlice";
 
 export function useBookingSlot() {
 	const dispatch = useAppDispatch();
 
 	useEffect(() => {
-		dispatch(initializeFromDB());
+		dispatch(getBookingsAsync());
 	}, [dispatch]);
 
 	const { slots, openBookings, bookings } = useAppSelector(

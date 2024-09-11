@@ -7,7 +7,7 @@ import { LocalizationProvider } from '@mui/x-date-pickers/LocalizationProvider';
 import { DatePicker } from "@mui/x-date-pickers/DatePicker";
 import { AdapterDayjs } from "@mui/x-date-pickers/AdapterDayjs";
 import { useAppDispatch, useAppSelector } from "@/lib/store";
-import { deleteBookingAsync, initializeFromDB } from "./bookingSlice";
+import { deleteBookingAsync, getBookingsAsync } from "./bookingSlice";
 import Anchor from "@/lib/common/components/Anchor";
 import ArrowBack from "@mui/icons-material/ArrowBack";
 import { Booking } from "@/lib/db/idb";
@@ -17,12 +17,9 @@ import { Flex } from "./booking.styles";
 export default function BookingList() {
     const dispatch = useAppDispatch();
     useEffect(() => {
-        dispatch(initializeFromDB())
+        dispatch(getBookingsAsync())
+        dispatch(getVehiclesAsync())
       }, [dispatch])
-
-    useEffect(() => {
-      dispatch(getVehiclesAsync())
-    }, [dispatch])
 
     const {bookings, slots, openBookings} =
   useAppSelector((state) => state.bookings);
