@@ -17,6 +17,7 @@ import ListItem from '@mui/material/ListItem';
 import ListItemButton from '@mui/material/ListItemButton';
 import ListItemIcon from '@mui/material/ListItemIcon';
 import ListItemText from '@mui/material/ListItemText';
+import ReceiptIcon from '@mui/icons-material/Receipt';
 import DriverIcon from './DriverIcon';
 import ProfileIcon from './ProfileIcon';
 import GateUpIcon from './GateUpIcon';
@@ -139,13 +140,15 @@ export default function DrawerLayout({ children }: any) {
         </DrawerHeader>
         <Divider />
         <List>
-          {['Motoristas', 'Estacionamento', 'Perfil'].map((text, index) => {
+          {['Motoristas', 'Estacionamento', 'Pedidos', 'Perfil'].map((text, index) => {
             let link = '';
             if (index == 0) {
               link = '/motoristas';
             } else if (index == 1) {
               link = '/estacionamento';
             } else if (index == 2) {
+              link = '/pedidos';
+            } else if (index == 3) {
               link = '/perfil/editar';
             }
             return (
@@ -153,7 +156,7 @@ export default function DrawerLayout({ children }: any) {
                 <ListItemButton
                   sx={{
                     minHeight: 48,
-                    justifyContent: open ? 'initial' : 'center',
+                    justifyContent: 'center',
                     px: 2.5,
                   }}
                 >
@@ -175,6 +178,11 @@ export default function DrawerLayout({ children }: any) {
                       </Anchor>
                     )}
                     {index === 2 && (
+                      <Anchor href="/pedidos">
+                        <ReceiptIcon fontSize='large' sx={{ color: 'black', marginRight: '4px' }} />
+                      </Anchor>
+                    )}
+                    {index === 3 && (
                       <Anchor href="/perfil/editar">
                         <ProfileIcon />
                       </Anchor>
