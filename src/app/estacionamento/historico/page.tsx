@@ -1,4 +1,4 @@
-import BookingList from "@/lib/features/bookings/BookingList.";
+import BookingList from "@/lib/features/bookings/BookingList";
 
 export default function Page() {
     return <BookingList />;
