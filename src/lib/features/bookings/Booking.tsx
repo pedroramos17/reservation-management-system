@@ -1,6 +1,6 @@
 'use client';
 
-import React, { useEffect, useMemo, useState } from 'react';
+import React, { useCallback, useEffect, useMemo, useState } from 'react';
 import FlexSearch from 'flexsearch';
 import { useBookingSlot } from './useBookingSlot';
 import { initializeSlotsAsync } from './bookingSlice';
@@ -101,6 +101,17 @@ export default function BookingPage(props: BookingPageProps) {
     console.log(vehicleId);
   };
 
+  const getVehicleDescriptionBySlotIndex = useCallback((slotIndex: number) => {
+    if (openBookings) {
+      const openBookingsBySlotIndex = openBookings.find((booking) => booking.slotIndex === slotIndex) ?? null;
+      
+      if (openBookingsBySlotIndex && vehicles) {
+        const vehicle = vehicles.find((vehicle) => vehicle.id === openBookingsBySlotIndex.vehicleId)
+        return vehicle && `${vehicle.brand} ${vehicle.model} ${vehicle.color} ${vehicle.variant} ${vehicle.year ?? ''} ${vehicle.licensePlate}`;
+      }
+    }
+  }, [vehicles, openBookings]);
+
   return (
     <div>
       <h1>Reservas</h1>
@@ -153,11 +164,13 @@ export default function BookingPage(props: BookingPageProps) {
         <Button sx={{ width: 150, marginY: 1, marginRight: 2 }} variant='contained' disabled={!vehicleId} onClick={handleReserve}>Reservar</Button>
         <Button ><Anchor href={'/estacionamento/historico'} ><span style={{width: '100%', display: 'flex', alignItems: 'center', gap: '8px'}}><HistoryIcon /> histórico de reservas</span></Anchor></Button>
       </div>
-      {slots.map((slot, index) => slot && (
+      {slots.map((slot, index) => {
+        const vehicleDescritionText = getVehicleDescriptionBySlotIndex(index);
+        if (slot) return (
           <List key={index}  style={{ display: 'flex', justifyContent: 'start', gap: '8px' }}>
             <ListItem>
                   <ListItemText
-                    primary={`Veículo: ${openBookings.find((booking) => booking.slotIndex === index)?.vehicleId}`}
+                    primary={`Veículo: ${vehicleDescritionText}`}
                     secondary={'Nome do motorista'}
                   />
                 </ListItem>
@@ -165,7 +178,7 @@ export default function BookingPage(props: BookingPageProps) {
                 Liberar reserva {index}
               </Button>
           </List>
-      ))}
+      )})}
       {orders && (
         <div>
           <h3>Últimos pedidos</h3>
