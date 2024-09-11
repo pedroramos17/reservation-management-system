@@ -25,4 +25,9 @@ const Listbox = styled("ul")(({ theme }) => ({
 	}),
 }));
 
-export { Listbox };
+const Flex = styled("div")({
+	display: "flex",
+	alignItems: "center",
+	gap: "20px",
+});
+export { Listbox, Flex };
