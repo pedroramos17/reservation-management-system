@@ -179,7 +179,7 @@ export default function DrawerLayout({ children }: any) {
                     )}
                     {index === 2 && (
                       <Anchor href="/pedidos">
-                        <ReceiptIcon fontSize='large' sx={{ color: 'black', marginRight: '4px' }} />
+                        <ReceiptIcon fontSize='large' sx={{ color: '#222222', marginRight: '4px' }} />
                       </Anchor>
                     )}
                     {index === 3 && (
