@@ -3,6 +3,7 @@ import { useDispatch, useSelector, useStore } from "react-redux";
 import bookingReducer from "@/lib/features/bookings/bookingSlice";
 import customersReducer from "@/lib/features/customers/customersSlice";
 import vehicleReducer from "@/lib/features/vehicles/vehiclesSlice";
+import orderReducer from "@/lib/features/orders/orderSlice";
 
 export const makeStore = () => {
 	return configureStore({
@@ -10,6 +11,7 @@ export const makeStore = () => {
 			bookings: bookingReducer,
 			customers: customersReducer,
 			vehicles: vehicleReducer,
+			orders: orderReducer,
 		},
 	});
 };

@@ -46,7 +46,7 @@ interface BookingPageProps {
 
 export default function BookingPage(props: BookingPageProps) {
   const dispatch = useAppDispatch();
-  const { slots, openBookings, orders } =
+  const { slots, openBookings } =
   useAppSelector((state) => state.bookings);
   const vehicles = useAppSelector((state) => selectAllVehicles(state));
   const { reserveSlot, freeSlot, chargingSelector, createOrder, howLongItTookForTheVehicleToLeaveInMinutes } = useBookingSlot();
@@ -179,25 +179,6 @@ export default function BookingPage(props: BookingPageProps) {
               </Button>
           </List>
       )})}
-      {orders && (
-        <div>
-          <h3>Últimos pedidos</h3>
-          <ul>
-            {
-              orders.map((order) => {
-                const hours = Math.floor(order.minutes / 60),
-                minutes = order.minutes % 60;
-                return  (
-                  <li key={order.bookingId}>
-                    Duration: {hours}h {minutes}m, 
-                    Total cost: ${order.price.toFixed(2)}
-                  </li>
-                )
-              })
-            }
-          </ul>
-        </div>
-      )}
     </div>
   );
 }

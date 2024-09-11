@@ -12,8 +12,6 @@ import {
 	getSlots,
 	updateBooking,
 	setSlots,
-	addOrder,
-	getOrders,
 	deleteBooking,
 } from "@/lib/repositories/bookingRepository";
 interface OpenBookings {
@@ -26,7 +24,6 @@ interface BookingState {
 	slots: boolean[];
 	openBookings: OpenBookings[];
 	bookings: EntityState<Booking, string>;
-	orders: Order[];
 	status: "idle" | "loading" | "failed";
 	error: string | null;
 }
@@ -34,7 +31,6 @@ const initialState: BookingState = {
 	slots: [],
 	openBookings: [],
 	bookings: bookingAdapter.getInitialState(),
-	orders: [],
 	status: "idle",
 	error: null,
 };
@@ -42,18 +38,16 @@ const initialState: BookingState = {
 export const initializeFromDB = createAsyncThunk(
 	"booking/initializeFromDB",
 	async () => {
-		const [slots, openBookings, bookings, orders] = await Promise.all([
+		const [slots, openBookings, bookings] = await Promise.all([
 			getSlots(),
 			getOpenBookings(),
 			getBookings(),
-			getOrders(),
 		]);
-		console.log("initializeFromDB", slots, openBookings, bookings, orders);
+		console.log("initializeFromDB", slots, openBookings, bookings);
 		return {
 			slots,
 			openBookings,
 			bookings,
-			orders,
 		};
 	}
 );
@@ -124,15 +118,6 @@ export const deleteBookingAsync = createAsyncThunk(
 	}
 );
 
-export const createOrderAsync = createAsyncThunk(
-	"booking/createOrder",
-	async (order: Order) => {
-		await addOrder(order);
-
-		return order;
-	}
-);
-
 export const bookingSlice = createSlice({
 	name: "booking",
 	initialState,
@@ -150,7 +135,6 @@ export const bookingSlice = createSlice({
 					state.bookings,
 					action.payload.bookings
 				);
-				state.orders = action.payload.orders;
 			})
 			.addCase(initializeFromDB.rejected, (state, action) => {
 				state.status = "failed";
@@ -181,9 +165,6 @@ export const bookingSlice = createSlice({
 				state.openBookings = action.payload.newOpenBookings;
 				state.slots = action.payload.newSlots;
 				bookingAdapter.removeOne(state.bookings, action.payload.id);
-			})
-			.addCase(createOrderAsync.fulfilled, (state, action) => {
-				state.orders.push(action.payload);
 			});
 	},
 });
