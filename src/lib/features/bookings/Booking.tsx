@@ -77,7 +77,7 @@ export default function BookingPage(props: BookingPageProps) {
         const chargeBy =  "hour";
         const price = chargingSelector(minutesSpent, chargeBy, 0.25);
   
-      createOrder({
+      await createOrder({
         bookingId: bookingClosed.id,
         timeSpentInMinutes: minutesSpent,
         chargeBy,
