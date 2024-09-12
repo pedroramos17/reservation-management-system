@@ -4,8 +4,12 @@ import {
 	createSlice,
 } from "@reduxjs/toolkit";
 import { Order } from "@/lib/db/idb";
-import { addOrder, getOrders } from "@/lib/repositories/bookingRepository";
 import { RootState } from "@/lib/store";
+import {
+	getOrders,
+	addOrder,
+	deleteOrder,
+} from "@/lib/repositories/orderRepository";
 
 export const getOrdersAsync = createAsyncThunk(
 	"booking/getOrders",
@@ -21,6 +25,14 @@ export const createOrderAsync = createAsyncThunk(
 		await addOrder(order);
 
 		return order;
+	}
+);
+
+export const deleteOrderAsync = createAsyncThunk(
+	"booking/deleteOrder",
+	async (orderId: string) => {
+		await deleteOrder(orderId);
+		return orderId;
 	}
 );
 
@@ -47,6 +59,9 @@ export const orderSlice = createSlice({
 		});
 		builder.addCase(createOrderAsync.fulfilled, (state, action) => {
 			OrderAdapter.addOne(state, action.payload);
+		});
+		builder.addCase(deleteOrderAsync.fulfilled, (state, action) => {
+			OrderAdapter.removeOne(state, action.payload);
 		});
 	},
 });
