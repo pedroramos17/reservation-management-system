@@ -1,4 +1,4 @@
-import dbPromise, { Booking, SLOTS, BOOKINGS, ORDERS } from "../db/idb";
+import dbPromise, { Booking, SLOTS, BOOKINGS } from "../db/idb";
 const getSlots = async () => {
 	const db = await dbPromise;
 	return db.getAll(SLOTS);
@@ -36,11 +36,6 @@ const updateBooking = async (booking: Booking) => {
 	await db.put(BOOKINGS, booking);
 };
 
-const getOrders = async () => {
-	const db = await dbPromise;
-	return db.getAll(ORDERS);
-};
-
 const deleteBooking = async (id: string) => {
 	const db = await dbPromise;
 	await db.delete(BOOKINGS, id);
@@ -53,6 +48,5 @@ export {
 	getBookings,
 	addBooking,
 	updateBooking,
-	getOrders,
 	deleteBooking,
 };
