@@ -4,7 +4,7 @@ import {
 	createEntityAdapter,
 	EntityState,
 } from "@reduxjs/toolkit";
-import type { Booking, Order } from "@/lib/db/idb";
+import type { Booking } from "@/lib/db/idb";
 import {
 	addBooking,
 	getOpenBookings,
