@@ -17,7 +17,7 @@ interface CardProps {
 
 export default function OrderCard({order}: CardProps) {
     const dispatch = useAppDispatch();
-    const booking = useAppSelector((state) => selectBookingById(state, order.id));
+    const booking = useAppSelector((state) => selectBookingById(state, order.bookingId));
     const vehicle = useAppSelector((state) => selectVehicleById(state, booking?.vehicleId));
     const customer = useAppSelector((state) => selectCustomerById(state, vehicle?.customerId));
 
@@ -33,7 +33,7 @@ export default function OrderCard({order}: CardProps) {
       <Card variant="outlined">
       <CardContent>
             <Typography gutterBottom sx={{ color: 'text.secondary', fontSize: 14 }}>
-                id: # {order.id}
+                id #{order.id}
             </Typography>
             <Typography variant="h5" component="div">
                 {customer ? customer.name : 'Sem nome do cliente'}
