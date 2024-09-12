@@ -42,7 +42,9 @@ interface CustomersProps {
 export default function CustomerList(props: CustomersProps) {
   const dispatch = useAppDispatch();
   useEffect(() => {
-    dispatch(getCustomersAsync())
+    if (window) {
+      dispatch(getCustomersAsync())
+    } 
   }, [dispatch])
   const customers = useAppSelector((state) => selectAllCustomers(state));
   const { query } = props;
