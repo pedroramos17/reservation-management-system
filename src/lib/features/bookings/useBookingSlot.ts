@@ -3,6 +3,7 @@ import {
 	reserveSlotAsync,
 	freeSlotAsync,
 	getBookingsAsync,
+	selectAllBookings,
 } from "./bookingSlice";
 import { useAppDispatch, useAppSelector } from "@/lib/store";
 import { Order, Booking, ChargeByType } from "@/lib/db/idb";
@@ -16,10 +17,8 @@ export function useBookingSlot() {
 		dispatch(getBookingsAsync());
 	}, [dispatch]);
 
-	const { slots, openBookings, bookings } = useAppSelector(
-		(state) => state.bookings
-	);
-	const bookingValues = Object.values(bookings);
+	const { slots, openBookings } = useAppSelector((state) => state.bookings);
+	const bookings = useAppSelector((state) => selectAllBookings(state));
 	const reserve = useCallback(
 		(vehicleId: string) => {
 			const index = slots.findIndex((isReserved) => !isReserved);
@@ -54,7 +53,7 @@ export function useBookingSlot() {
 		[dispatch, slots, openBookings]
 	);
 	const free = useCallback(
-		(slotIndex: number) => {
+		async (slotIndex: number) => {
 			if (slots[slotIndex]) {
 				const newSlots = [...slots];
 				newSlots[slotIndex] = false;
@@ -65,19 +64,19 @@ export function useBookingSlot() {
 				const vehicleId = openBookings.find(
 					(r) => r.slotIndex === slotIndex
 				)?.vehicleId;
-				const booking = bookingValues.find(
+				const booking = bookings.find(
 					(r) =>
 						r.vehicleId === vehicleId &&
 						r.slotIndex === slotIndex &&
 						r.exitDate === null
 				);
 				if (booking) {
-					const closedBooking = {
+					const closedBooking: Booking = {
 						...booking,
 						exitDate: new Date().getTime(),
 					};
 
-					dispatch(
+					await dispatch(
 						freeSlotAsync({
 							newSlots,
 							closedBooking,
@@ -89,7 +88,7 @@ export function useBookingSlot() {
 				}
 			}
 		},
-		[dispatch, slots, openBookings, bookingValues]
+		[dispatch, slots, openBookings, bookings]
 	);
 	const convertMillisecondsToMinutes = (milliseconds: number) =>
 		Math.floor(milliseconds / (1000 * 60));
@@ -142,7 +141,7 @@ export function useBookingSlot() {
 	}
 	const createOrder = (props: OrderProps) => {
 		const { bookingId, timeSpentInMinutes, chargeBy, price } = props;
-		const booking = bookingValues.find((b) => b.id === bookingId);
+		const booking = bookings.find((b) => b.id === bookingId);
 		if (!booking) {
 			return { message: "Booking not found", error: true };
 		}

@@ -66,26 +66,25 @@ export default function BookingPage(props: BookingPageProps) {
     }
     console.log(`No vehicle selected`);
   }
-  const handleFree = (index: number) => {
+  const handleFree = async (index: number) => {
     try {
-      const slotReleased = freeSlot(index);
-      if (!slotReleased) {
-        console.log(`Slot ${index} was not reserved`);
-        return;
+      const bookingClosed = await freeSlot(index);
+      console.log('bookingClosed: ', bookingClosed)
+      if (bookingClosed) {
+        const minutesSpent = howLongItTookForTheVehicleToLeaveInMinutes(
+          bookingClosed.entryDate, bookingClosed.exitDate ?? new Date().getTime()
+        )
+        const chargeBy =  "hour";
+        const price = chargingSelector(minutesSpent, chargeBy, 0.25);
+  
+      createOrder({
+        bookingId: bookingClosed.id,
+        timeSpentInMinutes: minutesSpent,
+        chargeBy,
+        price,
+      })
+        console.log(`Slot ${index} was freed`);
       }
-      const minutesSpent = howLongItTookForTheVehicleToLeaveInMinutes(
-        slotReleased.entryDate, slotReleased.exitDate
-      )
-      const chargeBy =  "hour";
-      const price = chargingSelector(minutesSpent, chargeBy, 0.25);
-
-    createOrder({
-      bookingId: slotReleased.id,
-      timeSpentInMinutes: minutesSpent,
-      chargeBy,
-      price,
-    })
-      console.log(`Slot ${index} was freed`);
     } catch (err) {
       console.error('Error freeing slot:', err);
     }
