@@ -18,11 +18,17 @@ interface CardProps {
 export default function OrderCard({order}: CardProps) {
     const dispatch = useAppDispatch();
     const booking = useAppSelector((state) => selectBookingById(state, order.bookingId));
-    const vehicle = useAppSelector((state) => selectVehicleById(state, booking?.vehicleId));
-    const customer = useAppSelector((state) => selectCustomerById(state, vehicle?.customerId));
+    const vehicle = useAppSelector((state) => selectVehicleById(state, booking.vehicleId));
+    const customer = useAppSelector((state) => selectCustomerById(state, vehicle.customerId));
 
     const hours = Math.floor(order.minutes / 60),
     minutes = order.minutes % 60;
+    const chargeBy = order.chargeBy === 'none' ? 'Sem plano' :
+    order.chargeBy === 'less-than-10-minutes' ? 'Menos de 10 minutos' : 
+    order.chargeBy === 'half-hour' ? 'meia-hora' :
+    order.chargeBy === 'hour' ? 'hora' :
+    order.chargeBy === 'day' ? 'diário' :
+    order.chargeBy === 'month' ? 'mensal' : 'Sem plano';
 
     const handleDeleteOrder = (orderId: string) => {
         console.log("delete order: ", order)
@@ -38,9 +44,10 @@ export default function OrderCard({order}: CardProps) {
             <Typography variant="h5" component="div">
                 {customer ? customer.name : 'Sem nome do cliente'}
             </Typography>
-            <Typography sx={{ color: 'text.secondary', mb: 1.5 }}>adjective</Typography>
+            <Typography sx={{ color: 'text.secondary', mb: 1.5 }}>{vehicle && `${vehicle.brand} ${vehicle.model} ${vehicle.year ?? ''} ${vehicle.color} ${vehicle.variant} ${vehicle.licensePlate}`}</Typography>
             <Typography variant="body2">
-                Tempo passado: {hours}h {minutes}m, 
+              Plano escolhido: {chargeBy} <br />
+                Tempo passado: {hours}h {minutes}m <br />
                 Total: R${order.price.toFixed(2)}
             </Typography>
             </CardContent>
