@@ -27,13 +27,12 @@ export default function OrderList() {
             {orders && (
                 <div>
                     <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr 1fr 1fr', gap: 10 }}>
-                        {orders.map((order) => {   
-                            return  (
+                        {orders.map((order) => (
                                 <div key={order.bookingId}>
                                     <OrderCard order={order} />
                                 </div>
                             )
-                        })}
+                        )}
                     </div>
                 </div>
             )}
