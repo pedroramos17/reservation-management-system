@@ -2,7 +2,7 @@
 
 import { TextField, Button } from '@mui/material';
 import styled from '@emotion/styled';
-import { useEffect, useState } from 'react';
+import { useCallback, useEffect, useState } from 'react';
 
 const Container = styled.div`
   display: flex;
@@ -22,21 +22,23 @@ const Wrapper = styled.div`
 
 export default function Profile() {
   const [estimate, setEstimate] = useState([0, 0] as unknown as string[]);	
-  let percent = 0 as unknown as string;
-  let quota = 0 as unknown as string;
-  const handleEstimate = async () => await navigator.storage.estimate().then((estimate) => {
+  const handleEstimate = useCallback(async () => await navigator.storage.estimate().then((estimate) => {
+    let percent = 0 as unknown as string;
+    let quota = 0 as unknown as string;
     percent = (
       (estimate.usage as unknown as number) * (100 / (estimate.quota as unknown as number)) *
       100
     ).toFixed(2);
     quota = ((estimate.quota as unknown as number) / 1024 / 1024).toFixed(2) + "MB";
-
+    
     setEstimate([percent, quota]);
-  });
+  }), [])
   
     useEffect(() => {
-      handleEstimate();
-  }, []);
+      if (navigator) {
+        handleEstimate();
+      }
+  }, [handleEstimate]);
 
   return (
     <Container>
