@@ -19,8 +19,8 @@ export const getOrdersAsync = createAsyncThunk(
 	}
 );
 
-export const createOrderAsync = createAsyncThunk(
-	"booking/createOrder",
+export const addOrderAsync = createAsyncThunk(
+	"booking/addOrder",
 	async (order: Order) => {
 		await addOrder(order);
 
@@ -57,7 +57,7 @@ export const orderSlice = createSlice({
 		builder.addCase(getOrdersAsync.rejected, (state) => {
 			state.status = "failed";
 		});
-		builder.addCase(createOrderAsync.fulfilled, (state, action) => {
+		builder.addCase(addOrderAsync.fulfilled, (state, action) => {
 			OrderAdapter.addOne(state, action.payload);
 		});
 		builder.addCase(deleteOrderAsync.fulfilled, (state, action) => {
@@ -68,6 +68,5 @@ export const orderSlice = createSlice({
 
 export default orderSlice.reducer;
 
-export const { selectAll: selectAllOrders } = OrderAdapter.getSelectors(
-	(state: RootState) => state.orders
-);
+export const { selectAll: selectAllOrders, selectById: selectOrderById } =
+	OrderAdapter.getSelectors((state: RootState) => state.orders);
