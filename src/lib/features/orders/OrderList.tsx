@@ -23,7 +23,6 @@ export default function OrderList() {
     return (
         <div>
             <h1>Lista de Pedidos</h1>
-
             {orders && (
                 <div>
                     <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr 1fr 1fr', gap: 10 }}>
