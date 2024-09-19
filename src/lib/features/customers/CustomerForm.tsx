@@ -8,7 +8,7 @@ import RemoveIcon from '@mui/icons-material/Remove';
 import ArrowBack from '@mui/icons-material/ArrowBack';
 import * as Yup from 'yup'
 import Anchor from '@/lib/common/components/Anchor';
-import { ButtonContainer, Container, FlexContainer, GridContainer } from './customerForm.styles';
+import { ButtonContainer, Container, FlexContainer, GridContainer } from '@/lib/common/components/styles/form';
 import { useAppDispatch, useAppSelector } from '@/lib/store';
 import { useCustomerForm } from './useCustomerForm';
 import { getCustomersAsync, selectCustomerById, selectVehiclesByCustomerId } from './customersSlice';
