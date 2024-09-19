@@ -1,6 +1,83 @@
 import { openDB, DBSchema } from "idb";
+import { currencyCodeList } from "../features/utils/currencyCodeList";
 
 interface ParkingLotDB extends DBSchema {
+	properties: {
+		key: string;
+		value: {
+			propertyId: string;
+			propertyName: string;
+			propertyCategory: number; // Código da categoria da propriedade, ex: escola, hotel, hospital, etc.
+			propertyInfo: {
+				coordinates: number[];
+				checkInFrom: CheckIOTimeType;
+				checkOutTo: CheckIOTimeType;
+				services: string[];
+			};
+			contactInfo: {
+				contactProfileType: ContactProfileType;
+				name: string;
+				email: string[];
+				phone: number[];
+				address: {
+					countryCode: string;
+					addressLine: string;
+					number?: number;
+					cityName: string;
+					stateProvinceCode: string;
+					postalCode: number;
+					updatedAt: number | null;
+				};
+				updatedAt: number | null;
+			}[];
+			updatedAt: number | null;
+		};
+	};
+	rooms: {
+		key: string;
+		value: {
+			roomId: string;
+			description: string;
+			policy: string; // regras da sala, ex: em construção.
+			capacity: number; // capacidade da sala
+			roomType: string; // laboratório de informática, química, nutrição ou sala de aula normal
+			roomCategory: string; // sala de química, nutrição, ADM ou desenvolvimento de sistemas
+			views: string; // visão da janela, ex: quadra, jardim, pátio, corredor, etc.
+			amenities: string[]; // salas com ar-condicionado, projetor, lousa e etc.
+		};
+	};
+	services: {
+		key: string;
+		value: {
+			serviceId: string;
+			serviceName: string;
+			currencyCode: CurrencyCodeType;
+			serviceType: string;
+			description: string;
+			serviceCode: string;
+			servicePrice: number;
+		};
+	};
+	sellableProducts: {
+		key: string;
+		value: {
+			id: string;
+			propertyId: string;
+			productInfo: {
+				name: string;
+				productType: string;
+				details: {
+					key: string;
+					value: string | number | { key: string; value: string };
+				}[];
+				amenities: {
+					key: string;
+					value: string | number;
+				}[];
+			};
+			updatedAt: number | null;
+		};
+	};
 	slots: {
 		key: number;
 		value: boolean;
@@ -60,7 +137,6 @@ interface ParkingLotDB extends DBSchema {
 			id: string;
 			name: string;
 			email: string;
-			address: string;
 			operatingHour: string;
 			updatedAt: number | null;
 		};
@@ -69,6 +145,14 @@ interface ParkingLotDB extends DBSchema {
 
 const dbPromise = openDB<ParkingLotDB>("parSlotMapDB", 1, {
 	upgrade(db) {
+		db.createObjectStore(PROPERTIES, {
+			keyPath: "propertyId",
+		});
+		db.createObjectStore(ROOMS);
+		db.createObjectStore(SERVICES, {
+			keyPath: "serviceId",
+		});
+		db.createObjectStore(SELLABLE_PRODUCTS);
 		db.createObjectStore(SLOTS);
 		const bookingStore = db.createObjectStore(BOOKINGS, {
 			keyPath: "id",
@@ -93,22 +177,84 @@ const dbPromise = openDB<ParkingLotDB>("parSlotMapDB", 1, {
 
 export default dbPromise;
 
+export type Property = ParkingLotDB["properties"]["value"];
 export type Booking = ParkingLotDB["bookings"]["value"];
 export type Customer = ParkingLotDB["customers"]["value"];
 export type Order = ParkingLotDB["orders"]["value"];
 export type Vehicle = ParkingLotDB["vehicles"]["value"];
 
-export type ChargeByType =
-	| "none"
-	| "less-than-10-minutes"
-	| "half-hour"
-	| "hour"
-	| "day"
-	| "month";
+export type PropertyCategory =
+	| "school"
+	| "hotel"
+	| "hospital"
+	| "office"
+	| "restaurant"
+	| "other";
+export type CurrencyCodeType = typeof currencyCodeList;
 
-export const PARKING_LOTS = "parkingLots",
+export type ChargeByType = "none" | "hour" | "day" | "month";
+export type ContactProfileType = "physicalLocation" | "general" | "invoices";
+
+export const AmenityType = {
+	PARKING_LOT: {},
+};
+
+export const PROPERTIES = "properties",
+	ROOMS = "rooms",
+	SERVICES = "services",
+	SELLABLE_PRODUCTS = "sellableProducts",
 	SLOTS = "slots",
 	BOOKINGS = "bookings",
 	ORDERS = "orders",
 	CUSTOMERS = "customers",
 	VEHICLES = "vehicles";
+
+export type CheckIOTimeType =
+	| "00:00"
+	| "00:30"
+	| "01:00"
+	| "01:30"
+	| "02:00"
+	| "02:30"
+	| "03:00"
+	| "03:30"
+	| "04:00"
+	| "04:30"
+	| "05:00"
+	| "05:30"
+	| "06:00"
+	| "06:30"
+	| "07:00"
+	| "07:30"
+	| "08:00"
+	| "08:30"
+	| "09:00"
+	| "09:30"
+	| "10:00"
+	| "10:30"
+	| "11:00"
+	| "11:30"
+	| "12:00"
+	| "12:30"
+	| "13:00"
+	| "13:30"
+	| "14:00"
+	| "14:30"
+	| "15:00"
+	| "15:30"
+	| "16:00"
+	| "16:30"
+	| "17:00"
+	| "17:30"
+	| "18:00"
+	| "18:30"
+	| "19:00"
+	| "19:30"
+	| "20:00"
+	| "20:30"
+	| "21:00"
+	| "21:30"
+	| "22:00"
+	| "22:30"
+	| "23:00"
+	| "23:30";
