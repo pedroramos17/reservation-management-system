@@ -129,7 +129,7 @@ export default function DrawerLayout({ children }: any) {
         </Toolbar>
       </AppBar>
       <Drawer variant="permanent" open={open}>
-        <DrawerHeader>
+        <DrawerHeader sx={{ backgroundColor: '#F6F8FC' }}>
           <IconButton onClick={handleDrawerClose}>
             {theme.direction === 'rtl' ? (
               <ChevronRightIcon />
@@ -139,7 +139,7 @@ export default function DrawerLayout({ children }: any) {
           </IconButton>
         </DrawerHeader>
         <Divider />
-        <List>
+        <List sx={{ backgroundColor: '#F6F8FC', height: '100vh' }}>
           {['Motoristas', 'Estacionamento', 'Pedidos', 'Perfil'].map((text, index) => {
             let link = '';
             if (index == 0) {
@@ -203,7 +203,7 @@ export default function DrawerLayout({ children }: any) {
           })}
         </List>
       </Drawer>
-      <Box component="main" sx={{ flexGrow: 1, p: 3 }}>
+      <Box component="main" sx={{ flexGrow: 1, p: 3, backgroundColor: '#f6f8fc', }}>
         <DrawerHeader />
         {children}
       </Box>
