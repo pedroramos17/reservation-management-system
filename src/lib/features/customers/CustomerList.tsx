@@ -4,7 +4,7 @@ import { useEffect } from 'react';
 import FlexSearch from 'flexsearch';
 import CustomerTable from '@/lib/features/customers/table';
 import SearchTool from '@/lib/common/components/SearchTool';
-import { Container, HeaderContainer } from '@/lib/common/components/styles';
+import { Container, HeaderContainer, Title } from '@/lib/common/components/styles';
 import Search from '@/lib/common/components/Search';
 import { useAppDispatch, useAppSelector } from "@/lib/store"
 import { getCustomersAsync, deleteCustomerAsync, selectAllCustomers } from '@/lib/features/customers/customersSlice';
@@ -70,7 +70,7 @@ export default function CustomerList(props: CustomersProps) {
 
   return (
     <Container>
-      <h1>Motoristas</h1>
+      <Title>Motoristas</Title>
       <HeaderContainer>
         <Search variant="standard" placeholder="Pesquisar motoristas" />
         <SearchTool addBtnLink="/motoristas/criar" />
