@@ -1,19 +1,37 @@
-# Demo Barkin
+# Property Management System
 
-This is a demo of Barkin (Parking Lot Management) working as offline-first app.
+This is a demo Property Management System working as offline-first app.
 
-[click here to check it out](https://demo-barkin-pedroramos17.vercel.app/)
+[See the preview](https://demo-barkin-pedroramos17.vercel.app/)
+## Tools
+* React.js
+* Next.js
+* Redux Toolkit
+* Material-UI
 
-## Features
+## To-do
+
+- [ ] Rooms
+- [ ] Availability & Rating System
+- [ ] Services
+- [ ] Facilities
+- [ ] Tickets
+- [ ] Products
+- [ ] Notifications
+- [ ] Authentication
+- [ ] Authorization
+- [ ] Background-Sync
+
+## Done
 
 
-- [X] ~~CRUD drivers~~
-- [X] ~~Array of vehicles~~
-- [X] ~~Full-text search in IndexedDB~~
-- [X] ~~Adding global state (RTK)~~
+- [X] ~~CRUD customers~~
+- [X] ~~Full-text search~~
+- [X] ~~Add global state (RTK)~~
 - [X]  ~~Booking~~
-- [ ] Order
-- [ ] Export report in PDF/Spreadsheet
+- [X] ~~Orders~~
+- [X] ~~Export report in PDF/Spreadsheet~~
+- [X] ~~Properties~~
 
 ## Getting Started
 
