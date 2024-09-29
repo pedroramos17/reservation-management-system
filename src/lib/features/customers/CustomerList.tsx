@@ -42,7 +42,7 @@ interface CustomersProps {
 export default function CustomerList(props: CustomersProps) {
   const dispatch = useAppDispatch();
   useEffect(() => {
-    if (window) {
+    if (indexedDB) {
       dispatch(getCustomersAsync())
     } 
   }, [dispatch])
