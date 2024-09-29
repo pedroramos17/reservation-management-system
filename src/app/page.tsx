@@ -7,9 +7,11 @@ export default function App() {
 
   // wrap everything in a provider that ensures IndexedDB is ready
   useEffect(() => {
-    import('@/lib/db/idb').then(() => {
-      setIsDBReady(true);
-    });
+    if (indexedDB) {
+      import('@/lib/db/idb').then(() => {
+        setIsDBReady(true);
+      });
+    }
   }, []);
 
   if (!isDBReady) {
