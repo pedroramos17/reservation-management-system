@@ -7,28 +7,38 @@ interface ParkingLotDB extends DBSchema {
 		value: {
 			propertyId: string;
 			propertyName: string;
+			propertyOrganization?: string;
 			propertyCategory: number; // Código da categoria da propriedade, ex: escola, hotel, hospital, etc.
 			propertyInfo: {
 				coordinates: number[];
-				checkInFrom: CheckIOTimeType;
-				checkOutTo: CheckIOTimeType;
-				services: string[];
+				checkInFrom: string;
+				checkOutTo: string;
+				services: {
+					key: string;
+					value:
+						| string
+						| number
+						| { key: string; value: string | number }[];
+				}[];
 			};
 			contactInfo: {
-				contactProfileType: ContactProfileType;
-				name: string;
-				email: string[];
-				phone: number[];
-				address: {
-					countryCode: string;
-					addressLine: string;
-					number?: number;
-					cityName: string;
-					stateProvinceCode: string;
-					postalCode: number;
+				[key in ContactProfileType]: {
+					contactProfileType: ContactProfileType | string;
+					name: string;
+					email: string[];
+					phone: number[];
+					address: {
+						countryCode: string;
+						addressLine: string;
+						number?: number;
+						addressLine2?: string;
+						cityName: string;
+						stateProvinceCode: string;
+						postalCode: number;
+						updatedAt: number | null;
+					};
 					updatedAt: number | null;
 				};
-				updatedAt: number | null;
 			}[];
 			updatedAt: number | null;
 		};
@@ -99,7 +109,7 @@ interface ParkingLotDB extends DBSchema {
 			id: string;
 			bookingId: string;
 			minutes: number;
-			chargeBy: ChargeByType;
+			chargePer: ChargePer;
 			price: number;
 		};
 		indexes: { "by-booking": string };
@@ -192,7 +202,8 @@ export type PropertyCategory =
 	| "other";
 export type CurrencyCodeType = typeof currencyCodeList;
 
-export type ChargeByType = "none" | "hour" | "day" | "month";
+export type ChargePer = "hour" | "day" | "month" | "stay";
+
 export type ContactProfileType = "physicalLocation" | "general" | "invoices";
 
 export const AmenityType = {
