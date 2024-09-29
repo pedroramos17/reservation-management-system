@@ -1,38 +1,30 @@
 export default function chargingStrategy(minutes: number) {
-	const halfHour = 30;
 	const hour = 60;
 	const dayInHours = 24;
 	const monthInDays = 30;
-	const lessThanTenMinutes = (chargePerLessThanTenMinutes: number) =>
-		chargePerLessThanTenMinutes ?? 0;
-	const halfHourCharging = (chargePerHalfHour: number): number => {
-		return Math.floor(minutes / halfHour) * chargePerHalfHour;
-	};
-	const hourlyCharging = (chargePerHour: number): number => {
+	const hourlyCharge = (chargePerHour: number): number => {
 		return Math.floor(minutes / hour) * chargePerHour;
 	};
 
-	const dailyCharging = (chargePerDay: number): number => {
+	const dailyCharge = (chargePerDay: number): number => {
 		return Math.floor(minutes / hour / dayInHours) * chargePerDay;
 	};
 
-	const monthlyCharging = (chargePerMonth: number): number => {
+	const monthlyCharge = (chargePerMonth: number): number => {
 		return (
 			Math.floor(minutes / hour / dayInHours / monthInDays) *
 			chargePerMonth
 		);
 	};
 
-	const noneChargingType = (): number => {
-		return -1;
+	const stayingCharge = (chargePerStay: number): number => {
+		return chargePerStay;
 	};
 
 	return {
-		lessThanTenMinutes,
-		halfHourCharging,
-		hourlyCharging,
-		dailyCharging,
-		monthlyCharging,
-		noneChargingType,
+		hourlyCharge,
+		dailyCharge,
+		monthlyCharge,
+		stayingCharge,
 	};
 }

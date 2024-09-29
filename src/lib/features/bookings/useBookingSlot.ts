@@ -6,9 +6,9 @@ import {
 	selectAllBookings,
 } from "./bookingSlice";
 import { useAppDispatch, useAppSelector } from "@/lib/store";
-import { Order, Booking, ChargeByType } from "@/lib/db/idb";
+import { Order, Booking, ChargePer } from "@/lib/db/idb";
 import chargingStrategy from "./chargingStrategy";
-import { createOrderAsync } from "../orders/orderSlice";
+import { addOrderAsync } from "../orders/orderSlice";
 
 export function useBookingSlot() {
 	const dispatch = useAppDispatch();
@@ -101,46 +101,34 @@ export function useBookingSlot() {
 
 	const chargingSelector = (
 		minutes: number,
-		chargeBy: ChargeByType,
+		chargePer: ChargePer,
 		chargeAmount: number
 	) => {
-		const {
-			lessThanTenMinutes,
-			halfHourCharging,
-			hourlyCharging,
-			dailyCharging,
-			monthlyCharging,
-			noneChargingType,
-		} = chargingStrategy(minutes);
-		const selectChargeMethod = (chargeBy: ChargeByType) => {
-			switch (chargeBy) {
-				case "none":
-					return noneChargingType();
-				case "less-than-10-minutes":
-					return lessThanTenMinutes(chargeAmount);
-				case "half-hour":
-					return halfHourCharging(chargeAmount);
+		const { hourlyCharge, dailyCharge, monthlyCharge, stayingCharge } =
+			chargingStrategy(minutes);
+		const selectChargeMethod = (chargePer: ChargePer) => {
+			switch (chargePer) {
 				case "hour":
-					return hourlyCharging(chargeAmount);
+					return hourlyCharge(chargeAmount);
 				case "day":
-					return dailyCharging(chargeAmount);
+					return dailyCharge(chargeAmount);
 				case "month":
-					return monthlyCharging(chargeAmount);
-				default:
-					return noneChargingType();
+					return monthlyCharge(chargeAmount);
+				case "stay":
+					return stayingCharge(chargeAmount);
 			}
 		};
-		return selectChargeMethod(chargeBy);
+		return selectChargeMethod(chargePer);
 	};
 
 	interface OrderProps {
 		bookingId: string;
 		timeSpentInMinutes: number;
-		chargeBy: ChargeByType;
+		chargePer: ChargePer;
 		price: number;
 	}
 	const createOrder = (props: OrderProps) => {
-		const { bookingId, timeSpentInMinutes, chargeBy, price } = props;
+		const { bookingId, timeSpentInMinutes, chargePer, price } = props;
 		const booking = bookings.find((b) => b.id === bookingId);
 		if (!booking) {
 			return { message: "Booking not found", error: true };
@@ -149,10 +137,10 @@ export function useBookingSlot() {
 			id: Date.now().toString(),
 			bookingId,
 			minutes: timeSpentInMinutes,
-			chargeBy,
+			chargePer,
 			price,
 		};
-		dispatch(createOrderAsync(order));
+		dispatch(addOrderAsync(order));
 		return order.id;
 	};
 

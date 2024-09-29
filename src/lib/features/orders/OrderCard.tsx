@@ -16,10 +16,10 @@ interface CardProps {
     order: Order;
     customer: Customer;
     vehicle: Vehicle;
-    chargeBy: string;
+    chargePer: string;
 }
 
-function OrderCardContent({order, customer, vehicle, chargeBy}: CardProps) {
+function OrderCardContent({order, customer, vehicle, chargePer}: CardProps) {
   const hours = Math.floor(order.minutes / 60),
     minutes = order.minutes % 60;
 
@@ -33,7 +33,7 @@ function OrderCardContent({order, customer, vehicle, chargeBy}: CardProps) {
             </Typography>
             <Typography sx={{ color: 'text.secondary', mb: 1.5 }}>{vehicle && `${vehicle.brand} ${vehicle.model} ${vehicle.year ?? ''} ${vehicle.color} ${vehicle.variant} ${vehicle.licensePlate}`}</Typography>
             <Typography variant="body2">
-              Plano escolhido: {chargeBy} <br />
+              Plano escolhido: {chargePer} <br />
                 Tempo passado: {hours}h {minutes}m <br />
                 Total: R${order.price.toFixed(2)}
             </Typography>
@@ -54,12 +54,10 @@ export default function OrderCard({order}: {order: Order}) {
       dispatch(deleteOrderAsync(orderId))
     }
 
-    const chargeBy = order.chargeBy === 'none' ? 'Sem plano' :
-    order.chargeBy === 'less-than-10-minutes' ? 'Menos de 10 minutos' : 
-    order.chargeBy === 'half-hour' ? 'meia-hora' :
-    order.chargeBy === 'hour' ? 'hora' :
-    order.chargeBy === 'day' ? 'diário' :
-    order.chargeBy === 'month' ? 'mensal' : 'Sem plano';
+    const chargePerText = order.chargePer === 'stay' ? 'tempo de estadia' :
+    order.chargePer === 'hour' ? 'hora' :
+    order.chargePer === 'day' ? 'diário' :
+    order.chargePer === 'month' ? 'mensal' : 'sem plano';
 
     const styles = StyleSheet.create({
       page: {
@@ -96,11 +94,11 @@ export default function OrderCard({order}: {order: Order}) {
       order: Order;
       customer: Customer;
       vehicle: Vehicle;
-      chargeBy: string;
+      chargePer: string;
     }
 
     const OrderDocument = (
-      { order, customer, vehicle, chargeBy }: OrderDocumentProps
+      { order, customer, vehicle, chargePer }: OrderDocumentProps
     ) => {
       const date = new Date(parseInt(order.id)).toLocaleDateString('pt-BR', { timeZone: 'UTC', year: 'numeric', month: 'short', day: 'numeric', hour: 'numeric', minute: 'numeric', second: 'numeric' });
       return (
@@ -123,7 +121,7 @@ export default function OrderCard({order}: {order: Order}) {
             </View>
             <View style={styles.row}>
               <Text>Plano escolhido</Text>
-              <Text>{chargeBy}</Text>
+              <Text>{chargePer}</Text>
             </View>
             <View>
               <Text style={{ marginBottom: 24, alignItems: 'center'}}>===================================================</Text>
@@ -147,10 +145,10 @@ export default function OrderCard({order}: {order: Order}) {
       </Box>
       <Box sx={{ minWidth: '148px' }}>
         <Card variant="outlined">
-          <OrderCardContent  order={order} customer={customer} vehicle={vehicle} chargeBy={chargeBy} />
+          <OrderCardContent  order={order} customer={customer} vehicle={vehicle} chargePer={chargePerText} />
           <CardActions sx={{ justifyContent: 'space-around' }}>
             <Button size="small" variant='outlined'>
-              <PDFDownloadLink document={<OrderDocument order={order} customer={customer} vehicle={vehicle} chargeBy={chargeBy}/>} fileName={`${customer.name}-${order.id}.pdf`} style={{ textDecoration: 'none' }}>Exportar PDF</PDFDownloadLink>
+              <PDFDownloadLink document={<OrderDocument order={order} customer={customer} vehicle={vehicle} chargePer={chargePerText}/>} fileName={`${customer.name}-${order.id}.pdf`} style={{ textDecoration: 'none' }}><Typography sx={[ (theme) => ({ color: theme.palette.text.primary, fontSize: '14px' })]}>Exportar PDF</Typography></PDFDownloadLink>
             </Button>
             <Button size="small" color='error' variant="contained" onClick={() => handleDeleteOrder(order.id)}>Excluir</Button>
           </CardActions>
