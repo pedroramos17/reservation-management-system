@@ -93,7 +93,7 @@ export default function TableBodyCustom(props: Readonly<TableBodyProps>) {
               </TableCell>
               <TableCell>
                 <Button variant="contained" color="error" onClick={() => handleDeleteCustomer(row.id)} >
-                  Excluir
+                  <span>Excluir</span>
                 </Button>
               </TableCell>
             </TableRow>
