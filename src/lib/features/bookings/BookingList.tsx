@@ -96,7 +96,7 @@ export default function BookingList() {
     <div>
         <div style={{ display: 'flex', alignItems: 'center', gap: '16px' }}>
             <Anchor href="/estacionamento">
-            <ArrowBack sx={{ fontSize: 36, color: '#000' }} />
+            <ArrowBack sx={{ fontSize: 36 }} />
             </Anchor>
             <h1>Histórico de reservas</h1>
         </div>

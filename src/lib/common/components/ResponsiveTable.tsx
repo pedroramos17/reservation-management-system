@@ -1,6 +1,6 @@
 'use client';
 
-import { styled } from '@mui/material';
+import { styled, Box } from '@mui/material';
 import React, { useState, useCallback, useRef, useEffect, useMemo } from 'react';
 
 const Separator = styled('div')({
@@ -11,6 +11,14 @@ const Separator = styled('div')({
   width: '36px',
 })
 
+const TableHeader = styled('th')(({theme}) => ({
+  borderBottom: '1px solid rgba(0, 0, 0, 0.12)',
+  borderRight: '2px solid rgba(0, 0, 0, 0.12)',
+  ...theme.applyStyles('dark', {
+    borderBottom: '1px solid rgba(0, 0, 0, 0.36)',
+  borderRight: '2px solid rgba(0, 0, 0, 0.36)',
+  }),
+}))
 interface Column {
   id: string;
   label: string;
@@ -79,9 +87,9 @@ const ResponsiveTable = <T extends Record<string, any>>({
     (e: MouseEvent) => {
       if (resizingIndex === null || initialMouseX === null || initialColumnWidth === null || !tableRef.current) return;
 
-      const deltaX = e.clientX - initialMouseX;
-      const newWidth = initialColumnWidth + deltaX + (columnWidths[resizingIndex] - initialColumnWidth);
-      setColumnWidths((prevWidths) => {
+        const deltaX = e.clientX - initialMouseX;
+        const newWidth = initialColumnWidth + deltaX;
+        setColumnWidths((prevWidths) => {
         const newWidths = [...prevWidths];
         const column = columns[resizingIndex];
         const minWidth = column.minWidth ?? 50;
@@ -133,14 +141,21 @@ const ResponsiveTable = <T extends Record<string, any>>({
   }, [data, sortColumn, sortDirection]);
 
   return (
-    <div
-      style={{
-        fontFamily: 'Roboto, sans-serif',
+    <Box
+      sx={[
+        (theme) => ({
         backgroundColor: '#fafafa',
+        ...theme.applyStyles('dark', {
+          backgroundColor: '#1E1E1E',
+          }),
+        }),
+        {
+        fontFamily: 'Roboto, sans-serif',
         width: '100%',
         borderRadius: '4px',
         boxShadow: '0 1px 3px rgba(0,0,0,0.12), 0 1px 2px rgba(0,0,0,0.24)',
-        }}>
+        }
+      ]}>
       <div>
         <h3 style={{ paddingLeft: '16px',}}>{toolbarTitle && toolbarTitle}</h3>
       </div>
@@ -159,17 +174,14 @@ const ResponsiveTable = <T extends Record<string, any>>({
               }}
             >
             {columns.map((column, index) => (
-                <th
+                <TableHeader
                 key={column.id}
                 style={{
                     position: 'relative',
                     width: column.isResizable ? `${columnWidths[index]}px` : column.width,
                     padding: '16px',
-                    borderBottom: '1px solid rgba(0, 0, 0, 0.12)',
-                    borderRight: '2px solid rgba(0, 0, 0, 0.12)',
                     textAlign: 'left',
                     fontWeight: 500,
-                    color: 'rgba(0, 0, 0, 0.87)',
                     cursor: column.isSorted ? 'pointer' : 'default',
                     userSelect: 'none',
                 }}
@@ -202,7 +214,7 @@ const ResponsiveTable = <T extends Record<string, any>>({
                     right: column.isResizable ? '-18px' : 0,
                   }}
                 />
-                </th>
+                </TableHeader>
             ))}
             </tr>
         </thead>
@@ -225,7 +237,7 @@ const ResponsiveTable = <T extends Record<string, any>>({
             ))}
         </tbody>
         </table>
-    </div>
+    </Box>
   );
 };
 

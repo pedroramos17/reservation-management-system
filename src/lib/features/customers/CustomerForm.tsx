@@ -116,7 +116,7 @@ useEffect(() => {
         <div>
         <Box sx={{ display: 'flex', alignItems: 'center', mb: 2, gap: '16px' }}>
           <Anchor href="/motoristas">
-            <ArrowBack sx={{ fontSize: 36, color: '#000' }} />
+            <ArrowBack sx={{ fontSize: 36 }} />
           </Anchor>
           <h1>{id ? "Editar" : "Cadastrar"} Motorista</h1>
         </Box>
