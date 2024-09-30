@@ -1,5 +1,11 @@
+'use client';
+
+import * as React from 'react';
 import { TextField, Typography } from '@mui/material';
 import { FieldProps, FormEventProps } from './types';
+import { useCep } from '../hooks/useCep';
+import { useState } from 'react';
+import { FormikErrors } from 'formik';
 
 type AddressFields = {
     postalCode: FieldProps;
@@ -13,10 +19,46 @@ type AddressFields = {
 
 interface AddressProps extends FormEventProps {
     props: AddressFields
+    setFieldValue: (field: string, value: React.SetStateAction<any>, shouldValidate?: boolean) => Promise<void | FormikErrors<any>>
 }
 
-export default function Step3Address({props, handleChange, handleBlur}: AddressProps) {
+export default function Step3Address({props, handleChange, handleBlur, setFieldValue}: AddressProps) {
     const { postalCode, addressLine, number, addressLine2, neighborhood, cityName, stateProvinceCode } = props;
+    const [shouldFetch, setShouldFetch] = useState(false);
+    const [addressData, setAddressData] = useState({
+        cep: "",
+        logradouro: "",
+        complemento: "",
+        bairro: "",
+        localidade: "",
+        uf: "",
+      });
+    
+    const { data, error, loading } = useCep({postalCode: postalCode.value.toString(), shouldFetch });
+
+    const handleSearchPostalCode = (e: React.ChangeEvent<HTMLInputElement>) => {
+        e.preventDefault();
+        handleChange(e);
+        if (e.target.value.length === 8) {
+            setShouldFetch(true);
+            
+            if (data) {
+                setAddressData(data);
+                
+                setFieldValue('contactInfo.physicalLocation.address.postalCode', addressData.cep );
+                setFieldValue('contactInfo.physicalLocation.address.addressLine', addressData.logradouro );
+                setFieldValue('contactInfo.physicalLocation.address.addressLine2', addressData.complemento );
+                setFieldValue('contactInfo.physicalLocation.address.neighborhood', addressData.bairro );
+                setFieldValue('contactInfo.physicalLocation.address.cityName', addressData.localidade );
+                setFieldValue('contactInfo.physicalLocation.address.stateProvinceCode', addressData.uf );
+                setShouldFetch(false);
+            }
+            if (error) {
+                setShouldFetch(false);
+                console.log(error);
+            }
+        }
+    }
     return (
         <>
             <Typography variant="h6">Onde se encontra o estabelecimento?</Typography>
@@ -25,12 +67,11 @@ export default function Step3Address({props, handleChange, handleBlur}: AddressP
                     required
                     name={`contactInfo.physicalLocation.address.postalCode`}
                     label="CEP"
-                    onChange={handleChange}
+                    onChange={handleSearchPostalCode}
                     onBlur={handleBlur}
                     error={postalCode.touched && !!postalCode.error}
                     helperText={postalCode.touched && postalCode.error}
-                    type="number"
-                    value={postalCode.value == 0 ? '' : postalCode.value}
+                    value={postalCode.value ?? ''}
                 />
                 
                 <TextField
