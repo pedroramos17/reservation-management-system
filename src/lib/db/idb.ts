@@ -23,15 +23,16 @@ interface ParkingLotDB extends DBSchema {
 			};
 			contactInfo: {
 				[key in ContactProfileType]: {
-					contactProfileType: ContactProfileType | string;
-					name: string;
-					email: string[];
-					phone: number[];
+					contactProfileType: ContactProfileType;
+					name?: string;
+					email?: string[];
+					phone?: number[];
 					address: {
 						countryCode: string;
 						addressLine: string;
 						number?: number;
 						addressLine2?: string;
+						neighborhood: string;
 						cityName: string;
 						stateProvinceCode: string;
 						postalCode: number;
