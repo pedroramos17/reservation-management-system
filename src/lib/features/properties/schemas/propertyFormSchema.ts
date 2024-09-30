@@ -14,7 +14,7 @@ const step2ValidationSchema = Yup.object({
 });
 
 const step3ValidationSchema = Yup.object({
-	postalCode: Yup.number().required("Obrigatório"),
+	postalCode: Yup.string().required("Obrigatório"),
 	addressLine: Yup.string().required("Obrigatório"),
 	number: Yup.number(),
 	addressLine2: Yup.string(),
