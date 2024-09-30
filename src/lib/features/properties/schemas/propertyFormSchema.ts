@@ -12,16 +12,9 @@ const step2ValidationSchema = Yup.object({
 	checkInFrom: Yup.string(),
 	checkOutTo: Yup.string(),
 });
-const isValidCep = /^[0-9]{8}$/;
+
 const step3ValidationSchema = Yup.object({
-	postalCode: Yup.number()
-		.required("Obrigatório")
-		.test({
-			name: "is-postal-code",
-			exclusive: true,
-			message: "CEP inválido",
-			test: (value) => isValidCep.test(value.toString()),
-		}),
+	postalCode: Yup.number().required("Obrigatório"),
 	addressLine: Yup.string().required("Obrigatório"),
 	number: Yup.number(),
 	addressLine2: Yup.string(),
