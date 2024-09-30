@@ -8,12 +8,9 @@ import {
   Stepper,
   Step,
   StepLabel,
-  TextField,
-  Typography,
   Select,
   MenuItem,
   FormControl,
-  InputLabel,
   Box,
   Checkbox,
   FormControlLabel,
@@ -25,7 +22,7 @@ import {
   RadioGroup,
   SelectChangeEvent
 } from '@mui/material';
-import { Formik, Form, Field, FormikHelpers, getIn } from 'formik';
+import { Formik, Form, FormikHelpers, getIn } from 'formik';
 import ArrowBack from '@mui/icons-material/ArrowBack';
 import Anchor from '@/lib/common/components/Anchor';
 import { useAppDispatch, useAppSelector } from '@/lib/store';
@@ -38,8 +35,7 @@ import { CONTACT_PROFILES } from './constants/contactProfiles';
 import { FlexContainer } from '@/lib/common/components/styles/form';
 import { Title } from '@/lib/common/components/styles';
 import { step1ValidationSchema, step2ValidationSchema, step3ValidationSchema, step4ValidationSchema, step5ValidationSchema } from './schemas/propertyFormSchema';
-import { useCep } from './hooks/useCep';
-import Step1PropertyInfo from './propertyFormSteps/step1PropertyInfo';
+import Step1PropertyInfo from './propertyFormSteps/Step1PropertyInfo';
 import Step2HouseRules from './propertyFormSteps/Step2HouseRules';
 import Step3Address from './propertyFormSteps/Step3Address';
 
@@ -67,18 +63,14 @@ interface FormValues {
     contactInfo: {
         physicalLocation: {
           contactProfileType: string;
-					name: string;
-					email: string[];
-					phone: number[];
 					address: {
-						countryCode: string;
+						postalCode: string;
 						addressLine: string;
 						number?: number;
             addressLine2?: string;
             neighborhood: string;
 						cityName: string;
 						stateProvinceCode: string;
-						postalCode: number;
 						updatedAt: number | null;
 					};
 					updatedAt: number | null;
@@ -138,18 +130,14 @@ export default function PropertyForm(props: Readonly<UrlParams>) {
     contactInfo: {
         physicalLocation: {
           contactProfileType: "physicalLocation",
-          name: '',
-          email: [''],
-          phone: [0],
           address: {
-            countryCode: '',
             addressLine: '',
             number: undefined,
             addressLine2: '',
             neighborhood: '',
             cityName: '',
             stateProvinceCode: '',
-            postalCode: 0,
+            postalCode: '',
             updatedAt: null,
           },
           updatedAt: null,
@@ -159,50 +147,10 @@ export default function PropertyForm(props: Readonly<UrlParams>) {
 }
 
   const [formData, setFormData] = useState<FormValues>(initialValues);
-  useEffect(() => {
-    dispatch(getCustomersAsync());
-    dispatch(getVehiclesAsync());
-  }, [dispatch]);
 
-  const [addressData, setAddressData] = useState({
-    cep: "",
-    logradouro: "",
-    complemento: "",
-    unidade: "",
-    bairro: "",
-    localidade: "",
-    uf: "",
-  });
-
-  const handleChangeAddress = (event: React.ChangeEvent<HTMLInputElement>) => {
-    setAddressData({
-      ...addressData,
-      [event.target.name]: event.target.value,
-    });
-  };
-
-  const handleFillAddress = () => {
-    setFormData(
-      {
-      ...formData,
-      contactInfo: {
-        physicalLocation: {
-          ...formData.contactInfo.physicalLocation,
-          address: {
-            ...formData.contactInfo.physicalLocation.address,
-            addressLine: addressData.logradouro,
-            addressLine2: addressData.complemento,
-            neighborhood: addressData.bairro,
-						cityName: addressData.localidade,
-						stateProvinceCode: addressData.uf,
-          },
-        },
-      },
-    });
-  };
-
-  // const { data, error, loading } = useCep(addressData.cep);
-
+  // const handleFillAddress = () => {
+  //   setFormData();
+  // }
   const [chargeByOption, setChargeByOption] = useState('');
 
   const handleChangeChargeBySelect = (event: SelectChangeEvent) => {
@@ -328,7 +276,7 @@ const handleBack = () => {
             validateOnBlur
             onSubmit={handleSubmit}
           >
-            {({ values, errors, touched, isValid, handleChange, handleBlur, validateForm }) => {
+            {({ values, errors, touched, isValid, handleChange, handleBlur, validateForm, setFieldValue }) => {
               const address = 'contactInfo.physicalLocation.address.';
               const touchedPostalCode = getIn(touched, address + 'postalCode');
               const touchedAddressLine = getIn(touched, address + 'addressLine');
@@ -414,6 +362,7 @@ const handleBack = () => {
                     }}
                     handleBlur={handleBlur}
                     handleChange={handleChange}
+                    setFieldValue={setFieldValue}
                   />}
 
                 {activeStep === 3 && (
