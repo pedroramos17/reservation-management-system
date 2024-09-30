@@ -1,13 +1,29 @@
-"use server";
+"use client";
 
 import useSWR from "swr";
 
-const fetcher = (...args: Parameters<typeof fetch>) =>
-	fetch(...args).then((res) => res.json());
+const headers = new Headers();
+headers.append("Access-Control-Allow-Origin", "http://localhost:3000");
+headers.append("Access-Control-Allow-Credentials", "true");
+headers.append("Access-Control-Allow-Origin", "*");
+headers.append("Access-Control-Allow-Methods", "GET,HEAD,OPTIONS,POST,PUT");
+headers.append(
+	"Access-Control-Allow-Headers",
+	"Access-Control-Allow-Headers, Origin,Accept, X-Requested-With, Content-Type, Access-Control-Request-Method, Access-Control-Request-Headers"
+);
 
-export async function useCep(cep: string) {
+const fetcher = (url: string) =>
+	fetch(url, { headers }).then((res) => res.json());
+
+export function useCep({
+	postalCode,
+	shouldFetch,
+}: {
+	postalCode: string;
+	shouldFetch?: boolean;
+}) {
 	const { data, error, isLoading } = useSWR(
-		`https://viacep.com.br/ws/${cep}/json/`,
+		shouldFetch ? `https://viacep.com.br/ws/${postalCode}/json/` : null,
 		fetcher
 	);
 	return {
