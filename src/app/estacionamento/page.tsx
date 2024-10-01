@@ -1,3 +1,5 @@
+'use client';
+
 import BookingPage from "@/lib/features/bookings/Booking";
 
 interface BookingPageProps {
