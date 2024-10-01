@@ -1,7 +1,8 @@
 'use client';
 
-import { Container, Title } from "@/lib/common/components/styles";
-import PropertyForm from "@/lib/features/properties/PropertyForm";
+import dynamic from 'next/dynamic'
+
+const PropertyForm = dynamic(() => import("@/lib/features/properties/PropertyForm"), { ssr: false })
 
 export default function Page() {
 

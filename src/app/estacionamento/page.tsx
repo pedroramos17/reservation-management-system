@@ -1,6 +1,8 @@
 'use client';
 
-import BookingPage from "@/lib/features/bookings/Booking";
+import dynamic from 'next/dynamic'
+
+const BookingPage = dynamic(() => import("@/lib/features/bookings/Booking"), { ssr: false })
 
 interface BookingPageProps {
     readonly searchParams?: {
