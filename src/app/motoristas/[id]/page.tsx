@@ -1,8 +1,4 @@
-'use client';
-
-import dynamic from 'next/dynamic'
-
-const CustomerForm = dynamic(() => import("@/lib/features/customers/CustomerForm"), { ssr: false })
+import CustomerForm from '@/lib/features/customers/CustomerForm';
 
 export default function EditFormDriver({ params }: Readonly<{ params: { id: string } }>) {
   const { id } = params;

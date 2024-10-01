@@ -1,8 +1,4 @@
-'use client';
-
-import dynamic from 'next/dynamic'
-
-const OrderList = dynamic(() => import("@/lib/features/orders/OrderList"), { ssr: false })
+import OrderList from "@/lib/features/orders/OrderList";
 
 export default function Page() {
     return <OrderList />;
