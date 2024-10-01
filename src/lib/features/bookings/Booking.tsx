@@ -74,13 +74,13 @@ export default function BookingPage(props: BookingPageProps) {
         const minutesSpent = howLongItTookForTheVehicleToLeaveInMinutes(
           bookingClosed.entryDate, bookingClosed.exitDate ?? new Date().getTime()
         )
-        const chargeBy =  "hour";
-        const price = chargingSelector(minutesSpent, chargeBy, 0.25);
+        const chargePer =  "hour";
+        const price = chargingSelector(minutesSpent, chargePer, 0.25);
   
       await createOrder({
         bookingId: bookingClosed.id,
         timeSpentInMinutes: minutesSpent,
-        chargeBy,
+        chargePer,
         price,
       })
         console.log(`Slot ${index} was freed`);
