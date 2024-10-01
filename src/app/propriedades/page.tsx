@@ -1,8 +1,6 @@
 'use client';
 
-import dynamic from 'next/dynamic'
-
-const PropertyList = dynamic(() => import("@/lib/features/properties/PropertyList"), { ssr: false })
+import PropertyList from "@/lib/features/properties/PropertyList";
 
 export default function Page() {
     return <PropertyList />;

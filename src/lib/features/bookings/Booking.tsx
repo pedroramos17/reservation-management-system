@@ -1,5 +1,5 @@
 'use client';
-
+import 'client-only';
 import React, { useCallback, useEffect, useState } from 'react';
 import FlexSearch from 'flexsearch';
 import { useBookingSlot } from './useBookingSlot';

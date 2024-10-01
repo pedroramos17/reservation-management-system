@@ -1,5 +1,5 @@
 'use client';
-
+import 'client-only';
 import { useCallback, useEffect, useState } from 'react';
 import { useRouter } from 'next/navigation';
 import { TextField, Button, Box } from '@mui/material';

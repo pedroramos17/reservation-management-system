@@ -1,5 +1,5 @@
 'use client';
-
+import 'client-only';
 import { getOrdersAsync, selectAllOrders } from "./orderSlice";
 import { useAppDispatch, useAppSelector } from "@/lib/store";
 import { useEffect } from "react";

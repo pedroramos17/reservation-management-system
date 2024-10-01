@@ -1,5 +1,5 @@
 'use client';
-
+import 'client-only';
 import ResponsiveTable from "@/lib/common/components/ResponsiveTable";
 import Search from "@/lib/common/components/Search";
 import SearchTool from "@/lib/common/components/SearchTool";

@@ -1,5 +1,5 @@
 'use client';
-
+import 'client-only';
 import { TextField, Button } from '@mui/material';
 import styled from '@emotion/styled';
 import { useCallback, useEffect, useState } from 'react';

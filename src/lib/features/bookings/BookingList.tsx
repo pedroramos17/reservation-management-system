@@ -1,5 +1,5 @@
 'use client';
-
+import 'client-only';
 import { useCallback, useEffect, useMemo, useState } from "react";
 import { Button, List, ListItem, ListItemText } from "@mui/material";
 import dayjs, { Dayjs } from "dayjs";

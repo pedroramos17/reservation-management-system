@@ -1,10 +1,7 @@
 'use client';
 
-import dynamic from 'next/dynamic'
-
-const PropertyForm = dynamic(() => import("@/lib/features/properties/PropertyForm"), { ssr: false })
+import PropertyForm from "@/lib/features/properties/PropertyForm";
 
 export default function Page() {
-
-    return (<PropertyForm id="" />)
+    return <PropertyForm id="" />;
 }

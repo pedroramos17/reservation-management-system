@@ -1,8 +1,4 @@
-'use client';
-
-import dynamic from 'next/dynamic'
-
-const CustomerList = dynamic(() => import("@/lib/features/customers/CustomerList"), { ssr: false })
+import CustomerList from '@/lib/features/customers/CustomerList';
 
 interface DriverPageProps {
   readonly searchParams?: {

@@ -1,5 +1,5 @@
 'use client';
-
+import 'client-only';
 import { useEffect } from 'react';
 import FlexSearch from 'flexsearch';
 import CustomerTable from '@/lib/features/customers/table';
