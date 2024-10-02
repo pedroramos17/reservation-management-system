@@ -1,19 +1,10 @@
 import { FlexContainer } from "@/lib/common/components/styles/form";
 import { TextField } from "@mui/material";
-import { Field } from "formik";
-import { FieldProps } from "./types";
+import { Field, useFormikContext } from "formik";
+import { FormValues } from "../PropertyForm";
 
-type HouseRulesFields = {
-    checkInFrom: FieldProps;
-    checkOutTo: FieldProps;
-};
-
-interface HouseRulesProps {
-    props: HouseRulesFields;
-}
-
-export default function Step2HouseRules({props}: HouseRulesProps) {
-    const { checkInFrom, checkOutTo } = props;
+export default function Step2HouseRules() {
+    const { values: { propertyInfo: {checkInFrom, checkOutTo}}, touched, errors, handleChange, handleBlur } = useFormikContext<FormValues>();
     return (
         <>
             <p>Horário de funcionamento</p>
@@ -24,8 +15,11 @@ export default function Step2HouseRules({props}: HouseRulesProps) {
                 name="propertyInfo.checkInFrom"
                 label="Aberto desde as"
                 type="time"
-                error={checkInFrom.touched && !!checkInFrom.error}
-                helperText={checkInFrom.touched && checkInFrom.error}
+                value={checkInFrom}
+                handleChange={handleChange}
+                handleBlur={handleBlur}
+                error={touched.propertyInfo?.checkInFrom && !!errors.propertyInfo?.checkInFrom}
+                helperText={touched.propertyInfo?.checkInFrom && errors.propertyInfo?.checkInFrom}
                 />
                 <Field
                 as={TextField}
@@ -33,8 +27,11 @@ export default function Step2HouseRules({props}: HouseRulesProps) {
                 name="propertyInfo.checkOutTo"
                 label="Fechado às"
                 type="time"
-                error={checkOutTo.touched && !!checkOutTo.error}
-                helperText={checkOutTo.touched && checkOutTo.error}
+                value={checkOutTo}
+                handleChange={handleChange}
+                handleBlur={handleBlur}
+                error={touched.propertyInfo?.checkOutTo && !!errors.propertyInfo?.checkOutTo}
+                helperText={touched.propertyInfo?.checkOutTo && errors.propertyInfo?.checkOutTo}
                 />
             </FlexContainer>
             </>

@@ -1,20 +1,10 @@
 import { FormControl, InputLabel, MenuItem, Select, TextField } from "@mui/material";
-import { Field } from "formik";
+import { Field, useFormikContext } from "formik";
 import { PROPERTY_CATEGORIES } from "../constants/propertyCategories";
-import { FieldProps, FormEventProps } from "./types";
+import { FormValues } from "../PropertyForm";
 
-type PropertyInfoFields = {
-    propertyName: FieldProps;
-    propertyCategory: FieldProps;
-    propertyOrganization: FieldProps;
-};
-
-interface PropertyInfoProps extends FormEventProps {
-    props: PropertyInfoFields;
-};
-
-export default function Step1PropertyInfo({ props, handleChange, handleBlur }: PropertyInfoProps) {
-    const { propertyName, propertyCategory, propertyOrganization } = props;
+export default function Step1PropertyInfo() {
+    const { values: { propertyName, propertyCategory, propertyOrganization }, touched, errors, handleChange, handleBlur } = useFormikContext<FormValues>();
     return (
         <>
         <TextField
@@ -23,11 +13,11 @@ export default function Step1PropertyInfo({ props, handleChange, handleBlur }: P
             fullWidth
             name="propertyName"
             label="Nome da propriedade"
-            value={propertyName.value}
+            value={propertyName}
             onChange={handleChange}
             onBlur={handleBlur}
-            error={propertyName.touched && !!propertyName.error}
-            helperText={propertyName.touched && propertyName.error}
+            error={touched.propertyName && !!errors.propertyName}
+            helperText={touched.propertyName && errors.propertyName}
             autoFocus
         />
         <FormControl variant='standard' fullWidth>
@@ -36,7 +26,10 @@ export default function Step1PropertyInfo({ props, handleChange, handleBlur }: P
             as={Select}
             id='propertyCategory'
             name="propertyCategory"
-            error={propertyCategory.touched && !!propertyCategory.error}
+            value={propertyCategory}
+            onChange={handleChange}
+            onBlur={handleBlur}
+            error={touched.propertyCategory && !!errors.propertyCategory}
             >
             {Object.values(PROPERTY_CATEGORIES).map((category) => (
                 <MenuItem key={category.code} value={category.code}>
@@ -52,11 +45,11 @@ export default function Step1PropertyInfo({ props, handleChange, handleBlur }: P
             fullWidth
             name="propertyOrganization"
             label="Nome da organização"
-            value={propertyOrganization.value}
+            value={propertyOrganization}
             onChange={handleChange}
             onBlur={handleBlur}
-            error={propertyOrganization.touched && !!propertyOrganization.error}
-            helperText={propertyOrganization.touched && propertyOrganization.error}
+            error={touched.propertyOrganization && !!errors.propertyOrganization}
+            helperText={touched.propertyOrganization && errors.propertyOrganization}
             />
         </div>
         </>

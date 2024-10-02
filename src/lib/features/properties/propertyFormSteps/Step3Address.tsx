@@ -1,30 +1,54 @@
 'use client';
 
 import * as React from 'react';
-import { TextField, Typography } from '@mui/material';
-import { FieldProps, FormEventProps } from './types';
 import { useCep } from '../hooks/useCep';
 import { useState, useEffect } from 'react';
 import { useFormikContext } from 'formik';
+import { FormValues } from '../PropertyForm';
+import { TextField, Typography } from '@mui/material';
 
-type AddressFields = {
-    postalCode: FieldProps;
-    addressLine: FieldProps;
-    number: FieldProps;
-    addressLine2: FieldProps;
-    neighborhood: FieldProps;
-    cityName: FieldProps;
-    stateProvinceCode: FieldProps;
-}
+export default function Step3Address() {
+    const {
+        values: {
+            contactInfo: {
+                physicalLocation: {
+                    address: {
+                        postalCode,
+                        addressLine,
+                        number,
+                        addressLine2,
+                        neighborhood,
+                        cityName,
+                        stateProvinceCode,
+                    },
+                },
+            },
+        },
+        touched,
+        errors,
+        handleChange,
+        handleBlur,
+        setFieldValue
+    } = useFormikContext<FormValues>();
+    const addressTouched = touched?.contactInfo?.physicalLocation?.address
+    const postalCodeTouched = addressTouched?.postalCode;
+    const addressLineTouched = addressTouched?.addressLine;
+    const numberTouched = addressTouched?.number;
+    const addressLine2Touched = addressTouched?.addressLine2;
+    const neighborhoodTouched = addressTouched?.neighborhood;
+    const cityNameTouched = addressTouched?.cityName;
+    const stateProvinceCodeTouched = addressTouched?.stateProvinceCode;
 
-interface AddressProps extends FormEventProps {
-    props: AddressFields
-}
+    const addressError = errors?.contactInfo?.physicalLocation?.address;
+    const postalCodeError = addressError?.postalCode;
+    const addressLineError = addressError?.addressLine;
+    const numberError = addressError?.number;
+    const addressLine2Error = addressError?.addressLine2;
+    const neighborhoodError = addressError?.neighborhood;
+    const cityNameError = addressError?.cityName;
+    const stateProvinceCodeError = addressError?.stateProvinceCode;
 
-export default function Step3Address({props, handleChange, handleBlur}: AddressProps) {
-    const { postalCode, addressLine, number, addressLine2, neighborhood, cityName, stateProvinceCode } = props;
     const [shouldFetch, setShouldFetch] = useState(false);
-    const { setFieldValue } = useFormikContext();
     const [addressData, setAddressData] = useState({
         cep: "",
         logradouro: "",
@@ -86,11 +110,11 @@ export default function Step3Address({props, handleChange, handleBlur}: AddressP
                             variant='standard'
                             name={`contactInfo.physicalLocation.address.postalCode`}
                             label="CEP"
-                            value={postalCode.value ?? ''}
+                            value={postalCode ?? ''}
                             onChange={handleSearchPostalCode}
                             onBlur={handleBlur}
-                            error={postalCode.touched && !!postalCode.error}
-                            helperText={postalCode.touched && postalCode.error}
+                            error={postalCodeTouched && !!postalCodeError}
+                            helperText={postalCodeTouched && postalCodeError}
                         />
                         {error && <span style={{ color: '#D2261D' }}>Não foi possível encontrar o CEP</span>}
                     </div>
@@ -99,64 +123,64 @@ export default function Step3Address({props, handleChange, handleBlur}: AddressP
                     variant='standard'
                     name={`contactInfo.physicalLocation.address.addressLine`}
                     label="Endereço"
-                    value={addressLine.value ?? ''}
+                    value={addressLine ?? ''}
                     onChange={handleChange}
                     onBlur={handleBlur}
-                    error={addressLine.touched && !!addressLine.error}
-                    helperText={addressLine.touched && addressLine.error}
+                    error={addressLineTouched && !!addressLineError}
+                    helperText={addressLineTouched && addressLineError}
                 />
                 <TextField
                     variant='standard'
                     name={`contactInfo.physicalLocation.address.number`}
                     placeholder="Número"
-                    value={number.value}
+                    value={number}
                     onChange={handleChange}
                     onBlur={handleBlur}
-                    error={number.touched && !!number.error}
-                    helperText={number.touched && number.error}
+                    error={numberTouched && !!numberError}
+                    helperText={numberTouched && numberError}
                     type="number"
                 />
                 <TextField
                     variant='standard'
                     name={`contactInfo.physicalLocation.address.addressLine2`}
                     label="Complemento"
-                    value={addressLine2.value ?? ''}
+                    value={addressLine2 ?? ''}
                     onChange={handleChange}
                     onBlur={handleBlur}
-                    error={addressLine2.touched && !!addressLine2.error}
-                    helperText={addressLine2.touched && addressLine2.error}
+                    error={addressLine2Touched && !!addressLine2Error}
+                    helperText={addressLine2Touched && addressLine2Error}
                     />
                 <TextField
                     variant='standard'
                     name={`contactInfo.physicalLocation.address.neighborhood`}
                     label="Complemento"
-                    value={neighborhood.value ?? ''}
+                    value={neighborhood ?? ''}
                     onChange={handleChange}
                     onBlur={handleBlur}
-                    error={neighborhood.touched && !!neighborhood.error}
-                    helperText={neighborhood.touched && neighborhood.error}
+                    error={neighborhoodTouched && !!neighborhoodError}
+                    helperText={neighborhoodTouched && neighborhoodError}
                     />
                 <TextField
                     required
                     variant='standard'
                     name={`contactInfo.physicalLocation.address.cityName`}
                     label="Cidade"
-                    value={cityName.value ?? ''}
+                    value={cityName ?? ''}
                     onChange={handleChange}
                     onBlur={handleBlur}
-                    error={cityName.touched && !!cityName.error}
-                    helperText={cityName.touched && cityName.error}
+                    error={cityNameTouched && !!cityNameError}
+                    helperText={cityNameTouched && cityNameError}
                 />
                 <TextField
                     required
                     variant='standard'
                     name={`contactInfo.physicalLocation.address.stateProvinceCode`}
                     label="Estado"
-                    value={stateProvinceCode.value ?? ''}
+                    value={stateProvinceCode ?? ''}
                     onChange={handleChange}
                     onBlur={handleBlur}
-                    error={stateProvinceCode.touched && !!stateProvinceCode.error}
-                    helperText={stateProvinceCode.touched && stateProvinceCode.error}
+                    error={stateProvinceCodeTouched && !!stateProvinceCodeError}
+                    helperText={stateProvinceCodeTouched && stateProvinceCodeError}
                 />
                 </div>
             </>

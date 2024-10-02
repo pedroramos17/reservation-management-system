@@ -44,7 +44,7 @@ interface UrlParams {
   id: string;
 };
 
-interface FormValues {
+export interface FormValues {
     propertyId: string;
     propertyName: string;
     propertyOrganization: string;
@@ -279,23 +279,7 @@ const handleBack = () => {
             onSubmit={handleSubmit}
           >
             {({ values, errors, touched, handleChange, handleBlur, validateForm }) => {
-              const address = 'contactInfo.physicalLocation.address.';
-              const touchedPostalCode = getIn(touched, `${address}postalCode`);
-              const touchedAddressLine = getIn(touched, `${address}addressLine`);
-              const touchedNumber = getIn(touched, `${address}number`);
-              const touchedAddressLine2 = getIn(touched, `${address}addressLine2`);
-              const touchedNeighborhood = getIn(touched, `${address}neighborhood`);
-              const touchedCityName = getIn(touched, `${address}cityName`);
-              const touchedStateProvinceCode = getIn(touched, `${address}stateProvinceCode`);
-
-              const errorPostalCode = getIn(errors, `${address}postalCode`);
-              const errorAddressLine = getIn(errors, `${address}addressLine`);
-              const errorNumber = getIn(errors, `${address}number`);
-              const errorAddressLine2 = getIn(errors, `${address}addressLine2`);
-              const errorNeighborhood = getIn(errors, `${address}neighborhood`);
-
-              const errorCityName = getIn(errors, `${address}cityName`);
-              const errorStateProvinceCode = getIn(errors, `${address}stateProvinceCode`);
+              
 
               return (
               <Form noValidate style={{ padding: '16px', borderRadius: '8px', display: 'grid', gap: '24px'}}>
@@ -307,64 +291,11 @@ const handleBack = () => {
                   ))}
                 </Stepper>
 
-                {activeStep === 0 && <Step1PropertyInfo
-                  props={{
-                    propertyName: { value: values.propertyName, error: errors.propertyName, touched: touched.propertyName },
-                    propertyCategory: { value: values.propertyCategory, error: errors.propertyCategory, touched: touched.propertyCategory },
-                    propertyOrganization: { value: values.propertyOrganization, error: errors.propertyOrganization, touched: touched.propertyOrganization },
-                  }}
-                  handleChange={handleChange}
-                  handleBlur={handleBlur}
-                 />}
+                {activeStep === 0 && <Step1PropertyInfo />}
 
-                {activeStep === 1 && <Step2HouseRules
-                  props={{
-                    checkInFrom: { touched: touched.propertyInfo?.checkInFrom, error: errors.propertyInfo?.checkInFrom, value: values.propertyInfo?.checkInFrom },
-                    checkOutTo: { touched: touched.propertyInfo?.checkOutTo, error: errors.propertyInfo?.checkOutTo, value: values.propertyInfo?.checkOutTo },
-                  }}
-                />}
+                {activeStep === 1 && <Step2HouseRules/>}
 
-                {activeStep === 2 && <Step3Address
-                    props={{
-                      postalCode: {
-                        touched: touchedPostalCode,
-                        error: errorPostalCode,
-                        value: values.contactInfo.physicalLocation.address.postalCode,
-                      },
-                      addressLine: {
-                        touched: touchedAddressLine,
-                        error: errorAddressLine,
-                        value: values.contactInfo.physicalLocation.address.addressLine,
-                      },
-                      number: {
-                        touched: touchedNumber,
-                        error: errorNumber,
-                        value: values.contactInfo.physicalLocation.address.number,
-                      },
-                      addressLine2: {
-                        touched: touchedAddressLine2,
-                        error: errorAddressLine2,
-                        value: values.contactInfo.physicalLocation.address.addressLine2,
-                      },
-                      neighborhood: {
-                        touched: touchedNeighborhood,
-                        error: errorNeighborhood,
-                        value: values.contactInfo.physicalLocation.address.neighborhood,
-                      },
-                      cityName: {
-                        touched: touchedCityName,
-                        error: errorCityName,
-                        value: values.contactInfo.physicalLocation.address.cityName,
-                      },
-                      stateProvinceCode: {
-                        touched: touchedStateProvinceCode,
-                        error: errorStateProvinceCode,
-                        value: values.contactInfo.physicalLocation.address.stateProvinceCode,
-                      },
-                    }}
-                    handleBlur={handleBlur}
-                    handleChange={handleChange}
-                  />}
+                {activeStep === 2 && <Step3Address />}
 
                 {activeStep === 3 && (
                     <div>
