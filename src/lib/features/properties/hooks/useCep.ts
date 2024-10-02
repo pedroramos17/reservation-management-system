@@ -1,6 +1,6 @@
 "use client";
 
-import useSWR from "swr";
+import useSWRImmutable from "swr";
 
 const fetcher = async (url: string) => {
 	try {
@@ -23,7 +23,7 @@ export function useCep({
 	postalCode: string;
 	shouldFetch?: boolean;
 }) {
-	const { data, error, isLoading } = useSWR(
+	const { data, error, isLoading } = useSWRImmutable(
 		shouldFetch ? `https://opencep.com/v1/${postalCode}` : null,
 		fetcher,
 		{ shouldRetryOnError: false }
