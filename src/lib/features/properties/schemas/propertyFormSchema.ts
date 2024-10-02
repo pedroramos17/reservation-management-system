@@ -14,13 +14,21 @@ const step2ValidationSchema = Yup.object({
 });
 
 const step3ValidationSchema = Yup.object({
-	postalCode: Yup.string().required("Obrigatório"),
-	addressLine: Yup.string().required("Obrigatório"),
-	number: Yup.number(),
-	addressLine2: Yup.string(),
-	neighborhood: Yup.string().required("Obrigatório"),
-	cityName: Yup.string().required("Obrigatório"),
-	stateProvinceCode: Yup.string().required("Obrigatório"),
+	contactInfo: Yup.object({
+		physicalLocation: Yup.object({
+			address: Yup.object({
+				postalCode: Yup.string()
+					.max(9, "Max. 9 caracteres")
+					.required("Obrigatório"),
+				addressLine: Yup.string().required("Obrigatório"),
+				number: Yup.number().nullable(),
+				addressLine2: Yup.string().nullable(),
+				neighborhood: Yup.string().required("Obrigatório"),
+				cityName: Yup.string().required("Obrigatório"),
+				stateProvinceCode: Yup.string().required("Obrigatório"),
+			}),
+		}),
+	}),
 });
 
 type ServicesType = Property["propertyInfo"]["services"];

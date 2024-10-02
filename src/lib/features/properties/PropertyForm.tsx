@@ -196,6 +196,7 @@ const handleNext = async (values: FormValues) => {
       setActiveStep((prevActiveStep) => prevActiveStep + 1);
     } catch (err) {
       console.error('next btn triggr error', JSON.stringify(err));
+
       // if (err instanceof Yup.ValidationError) {
       //   err.inner.forEach((error) => {
       //     errors[error.path] = error.message;
@@ -277,24 +278,24 @@ const handleBack = () => {
             validateOnBlur
             onSubmit={handleSubmit}
           >
-            {({ values, errors, touched, isValid, handleChange, handleBlur, validateForm, setFieldValue }) => {
+            {({ values, errors, touched, handleChange, handleBlur, validateForm }) => {
               const address = 'contactInfo.physicalLocation.address.';
-              const touchedPostalCode = getIn(touched, address + 'postalCode');
-              const touchedAddressLine = getIn(touched, address + 'addressLine');
-              const touchedNumber = getIn(touched, address + 'number');
-              const touchedAddressLine2 = getIn(touched, address + 'addressLine2');
-              const touchedNeighborhood = getIn(touched, address + 'neighborhood');
-              const touchedCityName = getIn(touched, address + 'cityName');
-              const touchedStateProvinceCode = getIn(touched, address + 'stateProvinceCode');
+              const touchedPostalCode = getIn(touched, `${address}postalCode`);
+              const touchedAddressLine = getIn(touched, `${address}addressLine`);
+              const touchedNumber = getIn(touched, `${address}number`);
+              const touchedAddressLine2 = getIn(touched, `${address}addressLine2`);
+              const touchedNeighborhood = getIn(touched, `${address}neighborhood`);
+              const touchedCityName = getIn(touched, `${address}cityName`);
+              const touchedStateProvinceCode = getIn(touched, `${address}stateProvinceCode`);
 
-              const errorPostalCode = getIn(errors, address + 'postalCode');
-              const errorAddressLine = getIn(errors, address + 'addressLine');
-              const errorNumber = getIn(errors, address + 'number');
-              const errorAddressLine2 = getIn(errors, address + 'addressLine2');
-              const errorNeighborhood = getIn(errors, address + 'neighborhood');
+              const errorPostalCode = getIn(errors, `${address}postalCode`);
+              const errorAddressLine = getIn(errors, `${address}addressLine`);
+              const errorNumber = getIn(errors, `${address}number`);
+              const errorAddressLine2 = getIn(errors, `${address}addressLine2`);
+              const errorNeighborhood = getIn(errors, `${address}neighborhood`);
 
-              const errorCityName = getIn(errors, address + 'cityName');
-              const errorStateProvinceCode = getIn(errors, address + 'stateProvinceCode');
+              const errorCityName = getIn(errors, `${address}cityName`);
+              const errorStateProvinceCode = getIn(errors, `${address}stateProvinceCode`);
 
               return (
               <Form noValidate style={{ padding: '16px', borderRadius: '8px', display: 'grid', gap: '24px'}}>
@@ -363,7 +364,6 @@ const handleBack = () => {
                     }}
                     handleBlur={handleBlur}
                     handleChange={handleChange}
-                    setFieldValue={setFieldValue}
                   />}
 
                 {activeStep === 3 && (
@@ -493,10 +493,6 @@ const handleBack = () => {
                       </>
                     )}
                   </>
-                )}
-
-                {!isValid && (
-                  <span>Todos os campos precisam ser preenchidos corretamente</span>
                 )}
 
                 <div style={{ display: 'flex', justifyContent: 'space-between' }}>
