@@ -1,6 +1,9 @@
 import * as Yup from "yup";
 import { ChargePer, Property } from "@/lib/db/idb";
-import { ParkingLocationType, ParkingPrivacyType } from "../PropertyForm";
+import {
+	ParkingLocationType,
+	ParkingPrivacyType,
+} from "../propertyFormSteps/Step5Parking";
 
 const step1ValidationSchema = Yup.object({
 	propertyName: Yup.string().required("Obrigatório"),
@@ -47,12 +50,10 @@ const step5ValidationSchema = Yup.object().shape({
 		.required("Parking availability is required")
 		.min(0, "Parking available must be at least 0"),
 
-	parkingChargePer: Yup.mixed<ChargePer>()
-		.oneOf(
-			["day", "hour", "month", "stay"],
-			'Charge per must be either "day" or "hour"'
-		)
-		.optional(),
+	parkingChargePer: Yup.mixed<ChargePer>().oneOf(
+		["day", "hour", "month", "stay"],
+		'Charge per must be either "day", "hour", "month" or  "stay"'
+	),
 
 	parkingChargeAmount: Yup.number()
 		.optional()
@@ -68,17 +69,13 @@ const step5ValidationSchema = Yup.object().shape({
 				);
 			}
 		),
-	reservationsAvailable: Yup.number()
-		.required("Reservations available is required")
-		.min(0, "Reservations available must be at least 0"),
-
+	reservationsAvailable: Yup.number(),
 	parkingLocation: Yup.mixed<ParkingLocationType>()
 		.oneOf(
 			["onsite", "offsite"],
 			'Parking location must be either "onsite" or "offsite"'
 		)
 		.required("Parking location is required"),
-
 	parkingType: Yup.mixed<ParkingPrivacyType>()
 		.oneOf(
 			["private", "public"],

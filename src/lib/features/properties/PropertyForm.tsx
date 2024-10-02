@@ -9,18 +9,10 @@ import {
   Stepper,
   Step,
   StepLabel,
-  Select,
-  MenuItem,
-  FormControl,
   Box,
   Checkbox,
   FormControlLabel,
   FormGroup,
-  FormLabel,
-  InputAdornment,
-  OutlinedInput,
-  Radio,
-  RadioGroup,
   SelectChangeEvent
 } from '@mui/material';
 import { Formik, Form, FormikHelpers, getIn } from 'formik';
@@ -39,6 +31,7 @@ import { step1ValidationSchema, step2ValidationSchema, step3ValidationSchema, st
 import Step1PropertyInfo from './propertyFormSteps/Step1PropertyInfo';
 import Step2HouseRules from './propertyFormSteps/Step2HouseRules';
 import Step3Address from './propertyFormSteps/Step3Address';
+import Step5Parking from './propertyFormSteps/Step5Parking';
 
 interface UrlParams {
   id: string;
@@ -80,36 +73,10 @@ export interface FormValues {
   updatedAt: null;
 };
 
-
-export type ParkingLocationType = 'onsite' | 'offsite';
-export type ParkingPrivacyType = 'private' | 'public';
-
-export interface ParkingDetailsForm {
-  parkingAvailable: number;
-  parkingChargePer?: ChargePer;
-  parkingChargeAmount?: number;
-  reservationsAvailable: number;
-  parkingLocation: ParkingLocationType;
-  parkingType: ParkingPrivacyType;
-}
-
 export default function PropertyForm(props: Readonly<UrlParams>) {
-  const parkingAvailableOptions = {
-    0: 'Não',
-    1: 'Sim, gratuito',
-    2: 'Sim, pago',
-  }
-
   const { id } = props;
   const [activeStep, setActiveStep] = useState(0);
-  const[parkingDetailsForm, setParkingDetailsForm] = useState<ParkingDetailsForm>({
-    parkingAvailable: 0,
-    parkingChargeAmount: 0.00,
-    parkingChargePer: 'day' as ChargePer,
-    reservationsAvailable: 0,
-    parkingLocation: 'onsite' as ParkingLocationType,
-    parkingType: 'private' as ParkingPrivacyType,
-  });
+  
   const router = useRouter()
   const dispatch = useAppDispatch();
   const initialValues: FormValues = {
@@ -278,7 +245,7 @@ const handleBack = () => {
             validateOnBlur
             onSubmit={handleSubmit}
           >
-            {({ values, errors, touched, handleChange, handleBlur, validateForm }) => {
+            {({ values, handleChange, handleBlur, validateForm }) => {
               
 
               return (
@@ -299,132 +266,22 @@ const handleBack = () => {
 
                 {activeStep === 3 && (
                     <div>
-                      {values.propertyInfo.services.map((service, index) => (
-                        <div key={index}>
+                      {values.propertyInfo.services.map((service) => (
+                        <div key={service.key}>
                            <FormGroup>
-                              <FormControlLabel control={<Checkbox value={service.value}/>} label={service.key} />
+                              <FormControlLabel
+                                control={<Checkbox value={service.value}/>}
+                                label={service.key}
+                                onChange={handleChange}
+                                onBlur={handleBlur}
+                              />
                             </FormGroup>
                         </div>
                       ))}
                     </div>
                 )}
 
-                {activeStep === 4 && (
-                  <>
-                    <FormControl>
-                      <FormLabel id="demo-controlled-radio-buttons-group">O estacionamento está disponível para as pessoas?</FormLabel>
-                      <RadioGroup
-                        aria-labelledby="demo-controlled-radio-buttons-group"
-                        name="controlled-radio-buttons-group"
-                        value={parkingDetailsForm.parkingAvailable}
-                        onChange={e => setParkingDetailsForm((prevProps) => {
-                          return { ...prevProps, parkingAvailable: parseInt(e.target.value)}
-                        })}
-                      >
-                        {Object.entries(parkingAvailableOptions).map(([key, value]) => (
-                          <FormControlLabel key={key} value={key} control={<Radio />} label={value} />
-                        ))}
-                      </RadioGroup>
-                    </FormControl>
-                      {parkingDetailsForm.parkingAvailable === 2 && (
-                        <Box
-                          sx={{
-                            minwidth: 120,
-                            display: 'flex',
-                            flexDirection: 'row',
-                            justifyContent: 'start',
-                            alignItems: 'end',
-                            gap: '8px',
-                          }}
-                        >
-                          <FormControl>
-                          <FormLabel id="adornment-amount">Quanto custa o estacionamento?</FormLabel>
-                            <OutlinedInput
-                              id="adornment-amount"
-                              startAdornment={<InputAdornment position="start">R$</InputAdornment>}
-                              value={parkingDetailsForm.parkingChargeAmount}
-                              onChange={e => setParkingDetailsForm((prevProps) => {
-                                return { ...prevProps, parkingChargeAmount: parseFloat(e.target.value)}
-                              })}
-                              type="number" 
-                              placeholder="0.00"
-                            />
-                            </FormControl>
-                              <Select
-                                defaultValue='day'
-                                value={parkingDetailsForm.parkingChargePer}
-                                onChange={e => setParkingDetailsForm((prevProps) => {
-                                  return { ...prevProps, parkingChargePer: (e.target.value as ChargePer)}
-                                })}
-                                inputProps={{
-                                  name: 'Custo por',
-                                  id: 'charge-per',
-                                }}
-                                variant='outlined'
-                              >
-                                <MenuItem value="hour">Por hora</MenuItem>
-                                <MenuItem value="day">Por dia</MenuItem>
-                                <MenuItem value="month">Por mês</MenuItem>
-                                <MenuItem value="stay">Por estadia</MenuItem>
-                              </Select>
-                        </Box>
-                      )}
-                    {parkingDetailsForm.parkingAvailable !==  0 && (
-                      <>
-                        <FormControl>
-                          <FormLabel id="reservations-available-label">É necessário fazer reservas?</FormLabel>
-                          <RadioGroup
-                            aria-labelledby="reservations-available-label"
-                            name="reservations-available-radio-buttons-group"
-                            value={parkingDetailsForm.reservationsAvailable}
-                            onChange={({ target }) => setParkingDetailsForm((prevProps) => {
-                              return { ...prevProps, reservationsAvailable: parseInt(target.value)}
-                            })}
-                          >
-                            <FormControlLabel value="1" control={<Radio />} label="Sim" />
-                            <FormControlLabel value="0" control={<Radio />} label="Não" />
-                          </RadioGroup>
-                        </FormControl>
-                        <FormControl>
-                          <FormLabel id="">Onde o estacionamento está localizado?</FormLabel>
-                          <RadioGroup
-                            aria-labelledby="parking-location-label"
-                            name="parking-location-radio-buttons-group"
-                            value={parkingDetailsForm.parkingLocation}
-                            onChange={
-                              (e) => {
-                                setParkingDetailsForm((prevProps) => {
-                                  return {...prevProps, parkingLocation: (e.target.value as ParkingLocationType)}
-                                })
-                              }
-                            }
-                          >
-                            <FormControlLabel value="onsite" control={<Radio />} label="Interno, dentro da empresa" />
-                            <FormControlLabel value="offsite" control={<Radio />} label="Externo, fora da empresa" />
-                          </RadioGroup>
-                        </FormControl>
-                        <FormControl>
-                          <FormLabel id="">Que tipo de estacionamento é?</FormLabel>
-                          <RadioGroup
-                            aria-labelledby="parking-type-label"
-                            name="parking-type-radio-buttons-group"
-                            value={parkingDetailsForm.parkingType}
-                            onChange={
-                              (e) => {
-                                setParkingDetailsForm((prevProps) => {
-                                  return {...prevProps, parkingType: (e.target.value as ParkingPrivacyType)}
-                                })
-                              }
-                            }
-                          >
-                            <FormControlLabel value="private" control={<Radio />} label="Privado" />
-                            <FormControlLabel value="public" control={<Radio />} label="Público" />
-                          </RadioGroup>
-                        </FormControl>
-                      </>
-                    )}
-                  </>
-                )}
+                {activeStep === 4 && <Step5Parking />}
 
                 <div style={{ display: 'flex', justifyContent: 'space-between' }}>
                   {activeStep > 0 && (
