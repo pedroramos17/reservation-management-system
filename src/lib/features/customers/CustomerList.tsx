@@ -12,8 +12,8 @@ import type { Customer } from '@/lib/db/idb';
 import { deleteVehiclesAsync } from '../vehicles/vehiclesSlice';
 import { getVehiclesByCustomerId } from '@/lib/repositories/vehicleRepository';
     
-function fetchFilteredCustomers(query: string, customers: Customer[]|[]) {
-  const CustomerDocument = new FlexSearch.Document({
+export function searchCustomers(query: string, customers: Customer[]) {
+  const customerDocument = new FlexSearch.Document({
     document: {
       id: 'id',
       index: 'name',
@@ -22,33 +22,34 @@ function fetchFilteredCustomers(query: string, customers: Customer[]|[]) {
     tokenize: 'reverse',
     cache: true,
     preset: 'performance',
-  })
+  });
 
   for (const customer of customers) {
-    CustomerDocument.add({
+    customerDocument.add({
       id: customer.id,
       name: customer.name,
-    })
+    });
   }
-    
-  const results = CustomerDocument.search(query, { suggest: true });
+
+  const results = customerDocument.search(query, { suggest: true });
 
   return results;
-}
+};
+
 interface CustomersProps {
   readonly query: string;
 }
-
 export default function CustomerList(props: CustomersProps) {
   const dispatch = useAppDispatch();
   useEffect(() => {
-    if (indexedDB) {
+    if (Window !== undefined) {
       dispatch(getCustomersAsync())
     } 
   }, [dispatch])
   const customers = useAppSelector((state) => selectAllCustomers(state));
   const { query } = props;
-  const customersResponse = fetchFilteredCustomers(query, customers);
+  const customersResponse = searchCustomers(query, customers);
+  console.log("customersResponse: ", customersResponse)
   
   let searchedCustomersIds: any = [];
   customersResponse.forEach((response) => {
