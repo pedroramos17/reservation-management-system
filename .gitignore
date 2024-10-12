@@ -9,6 +9,7 @@ pnpm*.*
 
 # testing
 /coverage
+/tests/tests-out
 
 # next.js
 /.next/
@@ -36,3 +37,8 @@ yarn-error.log*
 # typescript
 *.tsbuildinfo
 next-env.d.ts
+node_modules/
+/test-results/
+/playwright-report/
+/blob-report/
+/playwright/.cache/
