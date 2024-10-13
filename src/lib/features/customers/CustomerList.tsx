@@ -12,7 +12,7 @@ import type { Customer } from '@/lib/db/idb';
 import { deleteVehiclesAsync } from '../vehicles/vehiclesSlice';
 import { getVehiclesByCustomerId } from '@/lib/repositories/vehicleRepository';
     
-export function searchCustomers(query: string, customers: Customer[]) {
+ export function searchCustomers(query: string, customers: Customer[]) {
   const customerDocument = new FlexSearch.Document({
     document: {
       id: 'id',
