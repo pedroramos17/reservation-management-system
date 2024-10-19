@@ -1,7 +1,7 @@
 import { openDB, DBSchema } from "idb";
 import { currencyCodeList } from "../features/utils/currencyCodeList";
 
-interface ParkingLotDB extends DBSchema {
+export interface ParkingLotDB extends DBSchema {
 	properties: {
 		key: string;
 		value: {
