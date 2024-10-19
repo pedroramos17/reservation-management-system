@@ -67,9 +67,6 @@ export default function CustomerList(props: CustomersProps) {
         }
         await dispatch(deleteCustomerAsync(customerId));
   };
-  const handleDeleteSelectedCustomers = async (selected: string[]) => {
-    
-  }
 
   return (
     <Container>
@@ -81,7 +78,6 @@ export default function CustomerList(props: CustomersProps) {
       <CustomerTable
         query={query}
         customers={customers}
-        handleDeleteSelectedCustomers={handleDeleteSelectedCustomers}
         handleDeleteCustomer={handleDeleteCustomer}
         searchedCustomersIds={searchedCustomersIds}
       /> 

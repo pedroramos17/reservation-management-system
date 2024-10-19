@@ -4,7 +4,7 @@ import DeleteIcon from '@mui/icons-material/Delete';
 
 interface CustomerTableToolBarProps {
   numSelected: number;
-  onDeleteSelectedCustomers: (selected: string[]) => void;
+  onDeleteSelectedCustomers: () => Promise<void>;
 }
 
 export default function CustomerTableToolbar(
@@ -45,13 +45,13 @@ export default function CustomerTableToolbar(
           Lista de motoristas
         </Typography>
       )}
-      {numSelected > 0 ? (
-      <Tooltip title="Excluir" onClick={async () => onDeleteSelectedCustomers([numSelected.toString()])}>
+      {numSelected > 0 && (
+      <Tooltip title="Excluir" onClick={onDeleteSelectedCustomers}>
           <IconButton>
             <DeleteIcon />
           </IconButton>
         </Tooltip>
-      ) : null}
+      )}
     </Toolbar>
   );
 }
