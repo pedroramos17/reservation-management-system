@@ -1,5 +1,6 @@
+import 'client-only';
 import React from 'react';
-import { render, screen, fireEvent, waitFor } from '@testing-library/react';
+import { render, screen } from '../../../test-utils';
 import CustomerList, { searchCustomers } from '@/lib/features/customers/CustomerList';
 import { Customer } from '@/lib/db/idb';
 
@@ -30,35 +31,30 @@ describe('searchCustomers function', () => {
         updatedAt: null,
       },
   ];
-  const query = 'Jan';
-  const customersResponse = searchCustomers(query, customers);
-  let searchedCustomersIds = [];
-  customersResponse.forEach((response) => {
-      searchedCustomersIds = response['result'];
-  });
 
   it('returns empty array with empty query', () => {
     const query = '';
     const results = searchCustomers(query, customers);
-    expect(results).toEqual([]);
+    expect(results[0]['result']).toStrictEqual([]);
   });
 
   it('returns customer with exact name match', () => {
     const query = 'John Doe';
     const results = searchCustomers(query, customers);
-    expect(results[1]).toEqual(customers[0].id);
+    console.log('results: ', results);
+    expect(results[0].result).toStrictEqual(customers[0].id);
   });
 
   it('returns customers with partial name match', () => {
     const query = 'Doe';
     const results = searchCustomers(query, customers);
-    expect(results[1]).toEqual(customers[0].id);
+    expect(results[0].result).toStrictEqual(customers[0].id);
 
   });
 
   it('returns empty result with non-existent customer name', () => {
     const query = 'Unknown Customer';
     const results = searchCustomers(query, customers);
-    expect(results).toEqual([]);
+    expect(results[0].result).toStrictEqual([]);
   });
 });
