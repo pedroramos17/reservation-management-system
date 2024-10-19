@@ -1,6 +1,8 @@
+'use client';
+import 'client-only';
 import { Button, Checkbox, TableBody, TableCell, TableRow } from "@mui/material";
 import getComparator, { Order } from "@/lib/utils/sorting";
-import { useMemo } from "react";
+import { useMemo, useState } from "react";
 import type { Customer } from "@/lib/db/idb";
 import type { CustomerData } from './types';
 import Anchor from "@/lib/common/components/Anchor";
@@ -16,10 +18,29 @@ interface TableBodyProps {
   handleDeleteCustomer: (id: string) => void;
 }
 export default function TableBodyCustom(props: Readonly<TableBodyProps>) {
+  const [selectedIds, setSelectedIds] = useState<string[]>([]);
         
     const { rows, selected, setSelected, page, rowsPerPage, order, orderBy, handleDeleteCustomer } = props
 
-    const handleClick = (_: React.MouseEvent<unknown>, id: string) => {
+    const handleClick = (e: React.MouseEvent<HTMLButtonElement, MouseEvent>, id: string) => {
+      const hasSelected = selectedIds.find((selectedId) => selectedId === id);
+      e.target.addEventListener("click", () => {
+        if (hasSelected) {
+          setSelectedIds((prevSelected) => {
+            const newSelectedIds = [id, ...prevSelected]
+            return newSelectedIds;
+          });
+          localStorage.setItem("selectedCustomers", JSON.stringify(selectedIds));
+        }
+
+        if (!hasSelected) {
+          setSelectedIds((prevSelected) => {
+            const newSelectedIds = prevSelected.filter((prevId) => prevId !== id)
+            return newSelectedIds;
+          });
+          localStorage.setItem("selectedCustomers", JSON.stringify(selectedIds));
+        }
+      });
         const selectedIndex = selected.indexOf(id);
         let newSelected: string[] = [];
     
@@ -69,7 +90,7 @@ export default function TableBodyCustom(props: Readonly<TableBodyProps>) {
               <TableCell padding="checkbox">
                 <Checkbox
                   color="primary"
-                  onClick={(event) => handleClick(event, row.id)}
+                  onClick={(e) => handleClick(e, row.id)}
                   checked={isItemSelected}
                   inputProps={{
                     'aria-labelledby': labelId,

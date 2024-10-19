@@ -67,7 +67,9 @@ export default function CustomerList(props: CustomersProps) {
         }
         await dispatch(deleteCustomerAsync(customerId));
   };
-  const handleDeleteSelectedCustomers = async (selected: string[]) => {}
+  const handleDeleteSelectedCustomers = async (selected: string[]) => {
+    
+  }
 
   return (
     <Container>

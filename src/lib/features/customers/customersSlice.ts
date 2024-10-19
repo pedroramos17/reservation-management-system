@@ -9,6 +9,7 @@ import {
 	getCustomers,
 	setCustomer,
 	removeCustomer,
+	removeManyCustomers,
 } from "@/lib/repositories/customerRepository";
 import type { Customer } from "@/lib/db/idb";
 import { RootState } from "@/lib/store";
@@ -47,6 +48,14 @@ const deleteCustomerAsync = createAsyncThunk(
 	async (customerId: string) => {
 		await removeCustomer(customerId);
 		return customerId;
+	}
+);
+
+const deleteCustomerManyAsync = createAsyncThunk(
+	"customer/deleteMany",
+	async (customerIds: string[]) => {
+		await removeManyCustomers(customerIds);
+		return customerIds;
 	}
 );
 
@@ -94,11 +103,32 @@ export const customerSlice = createSlice({
 				state.status = "rejected";
 				state.error =
 					action.error.message ?? "Rejected to delete customer";
+			})
+			.addCase(deleteCustomerManyAsync.pending, (state) => {
+				state.status = "pending";
+				state.error = null;
+			})
+			.addCase(
+				deleteCustomerManyAsync.fulfilled,
+				(state, { payload }) => {
+					state.status = "succeeded";
+					customersAdapter.removeMany(state, payload);
+				}
+			)
+			.addCase(deleteCustomerManyAsync.rejected, (state, action) => {
+				state.status = "rejected";
+				state.error =
+					action.error.message ?? "Rejected to delete many customers";
 			});
 	},
 });
 
-export { getCustomersAsync, setCustomerAsync, deleteCustomerAsync };
+export {
+	getCustomersAsync,
+	setCustomerAsync,
+	deleteCustomerAsync,
+	deleteCustomerManyAsync,
+};
 export default customerSlice.reducer;
 
 export const {

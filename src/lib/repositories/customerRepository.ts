@@ -19,4 +19,17 @@ const removeCustomer = async (id: string): Promise<void> => {
 	await db.delete(CUSTOMERS, id);
 };
 
-export { getCustomers, setCustomer, getById, removeCustomer };
+const removeManyCustomers = async (ids: string[]): Promise<void> => {
+	const db = await dbPromise;
+	const tx = db.transaction(CUSTOMERS, "readwrite");
+	await Promise.all(ids.map((id) => tx.store.delete(id)));
+	await tx.done;
+};
+
+export {
+	getCustomers,
+	setCustomer,
+	getById,
+	removeCustomer,
+	removeManyCustomers,
+};
