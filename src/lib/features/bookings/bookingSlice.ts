@@ -44,7 +44,6 @@ export const getBookingsAsync = createAsyncThunk(
 			getOpenBookings(),
 			getBookings(),
 		]);
-		console.log("getBookingsAsync", slots, openBookings, bookings);
 		return {
 			slots,
 			openBookings,
