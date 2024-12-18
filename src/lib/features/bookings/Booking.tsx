@@ -160,6 +160,7 @@ export default function BookingPage(props: BookingPageProps) {
         <Button sx={{ width: 150, marginY: 1, marginRight: 2 }} variant='contained' disabled={!vehicleId} onClick={handleReserve}>Reservar</Button>
         <Button ><Anchor href={'/estacionamento/historico'} ><span style={{width: '100%', display: 'flex', alignItems: 'center', gap: '8px'}}><HistoryIcon /> histórico de reservas</span></Anchor></Button>
       </div>
+      {slots.every((slot) => !slot) && <p>Sem reservas abertas</p>}
       {slots.map((slot, index) => {
         const vehicleDescritionText = getVehicleDescriptionBySlotIndex(index);
         if (slot) return (
