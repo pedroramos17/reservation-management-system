@@ -1,10 +1,14 @@
-import { FormControl, InputLabel, MenuItem, Select, TextField } from "@mui/material";
+'use client';
+
+import { Checkbox, FormControl, InputLabel, MenuItem, Select, TextField } from "@mui/material";
 import { Field, useFormikContext } from "formik";
 import { PROPERTY_CATEGORIES } from "../constants/propertyCategories";
 import { FormValues } from "../PropertyForm";
+import { useState } from "react";
 
 export default function Step1PropertyInfo() {
     const { values: { propertyName, propertyCategory, propertyOrganization }, touched, errors, handleChange, handleBlur } = useFormikContext<FormValues>();
+    const [isCorp, setIsCorp] = useState(false);
     return (
         <>
         <TextField
@@ -39,18 +43,24 @@ export default function Step1PropertyInfo() {
             </Field>
         </FormControl>
         <div>
-            <p>Você é uma imobiliária ou parte de uma organização ou corporação?</p>
-            <TextField
-            variant="standard"
-            fullWidth
-            name="propertyOrganization"
-            label="Nome da organização"
-            value={propertyOrganization}
-            onChange={handleChange}
-            onBlur={handleBlur}
-            error={touched.propertyOrganization && !!errors.propertyOrganization}
-            helperText={touched.propertyOrganization && errors.propertyOrganization}
-            />
+        <p><Checkbox
+                checked={isCorp}
+                onChange={() => setIsCorp(!isCorp)}
+            />Sou parte de uma organização ou corporação</p>
+            
+            {isCorp && (
+                <TextField
+                variant="standard"
+                fullWidth
+                name="propertyOrganization"
+                label="Nome da organização"
+                value={propertyOrganization}
+                onChange={handleChange}
+                onBlur={handleBlur}
+                error={touched.propertyOrganization && !!errors.propertyOrganization}
+                helperText={touched.propertyOrganization && errors.propertyOrganization}
+                />
+            )}
         </div>
         </>
     );
